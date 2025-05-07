@@ -9,7 +9,7 @@ class CustomerController extends Controller
 {
     public function index()
     {
-        $customers = Customer::latest()->get();
+        $customers = Customer::latest()->paginate(10);
         return view('customers.index', compact('customers'));
     }
 
@@ -19,22 +19,19 @@ class CustomerController extends Controller
     }
 
     public function store(Request $request)
-{
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|unique:customers|max:255',
-        'phone' => 'required|string|max:20',
-        'address' => 'nullable|string',
-    ], [
-        'email.unique' => 'Email ini sudah terdaftar sebagai customer',
-        'phone.required' => 'Nomor telepon wajib diisi'
-    ]);
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:customers,email',
+            'phone' => 'required|string|max:20',
+            'address' => 'nullable|string',
+        ]);
 
-    Customer::create($validated);
+        Customer::create($validated);
 
-    return redirect()->route('customers.index')
-        ->with('success', 'Customer berhasil ditambahkan');
-}
+        return redirect()->route('customers.index')
+                         ->with('success', 'Customer berhasil ditambahkan');
+    }
 
     public function show(Customer $customer)
     {
@@ -49,20 +46,23 @@ class CustomerController extends Controller
     public function update(Request $request, Customer $customer)
     {
         $validated = $request->validate([
-            'name' => 'required|string',
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:customers,email,'.$customer->id,
-            'phone' => 'required|string',
+            'phone' => 'required|string|max:20',
             'address' => 'nullable|string',
         ]);
 
         $customer->update($validated);
 
-        return redirect()->route('customers.index')->with('success', 'Customer updated successfully.');
+        return redirect()->route('customers.index')
+                         ->with('success', 'Customer berhasil diperbarui');
     }
 
     public function destroy(Customer $customer)
     {
         $customer->delete();
-        return redirect()->route('customers.index')->with('success', 'Customer deleted successfully.');
+
+        return redirect()->route('customers.index')
+                         ->with('success', 'Customer berhasil dihapus');
     }
 }

@@ -1,4 +1,5 @@
 <?php
+namespace App\Http\Controllers; 
 
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\OrderController;
@@ -17,8 +18,9 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Dashboard
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
+// Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('auth');
 Route::get('/reports', [ReportController::class, 'index'])->name('reports');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 
 // Resource Routes (dengan middleware auth)
@@ -26,6 +28,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/', [OrderController::class, 'index'])->name('home');
     Route::resource('customers', CustomerController::class);
     Route::resource('orders', OrderController::class);
+    Route::resource('reports', ReportController::class);
+    Route::redirect('/', '/dashboard');
     
     // Tambahan route untuk layanan jika diperlukan
     Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
