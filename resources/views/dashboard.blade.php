@@ -170,11 +170,12 @@
                                             <a href="{{ route('orders.edit', $order->id) }}" class="btn btn-sm btn-warning" title="Edit">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
-                                            <form action="{{ route('orders.destroy', $order->id) }}" method="POST" class="d-inline">
+                                            <form action="{{ route('orders.destroy', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger" title="Delete" onclick="return confirm('Are you sure?')">
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Delete">
                                                     <i class="fas fa-trash"></i> Delete
+                                                </button>
                                             </form>
                                         </div>
                                     </td>

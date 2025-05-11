@@ -20,6 +20,13 @@ class Order extends Model
         'notes'
     ];
 
+    protected $casts = [
+        'pickup_date' => 'date',
+        'delivery_date' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
+    ];
+
     // Relasi ke customer
     public function customer()
     {
