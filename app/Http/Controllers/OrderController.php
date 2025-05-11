@@ -82,7 +82,11 @@ public function update(Request $request, Order $order)
 
     public function destroy(Order $order)
     {
-        $order->delete();
-        return redirect()->route('orders.index')->with('success', 'Order deleted successfully.');
+        try {
+            $order->delete();
+            return redirect()->route('orders.index')->with('success', 'Order deleted successfully');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to delete order');
+        }
     }
 }

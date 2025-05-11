@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Pesanan #' . $order->id)
+@section('title', null)
 
 @section('content')
 <div class="container py-4">
@@ -14,6 +14,7 @@
                 @csrf
                 @method('PUT')
                 
+                <!-- Informasi Customer -->
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <h5>Informasi Customer</h5>
@@ -36,6 +37,7 @@
                         </div>
                     </div>
                     
+                    <!-- Detail Layanan -->
                     <div class="col-md-6">
                         <h5>Detail Layanan</h5>
                         <hr>
@@ -83,35 +85,26 @@
                     </div>
                 </div>
                 
+                <!-- Jadwal dan Status -->
                 <div class="row">
                     <div class="col-md-6">
                         <h5>Jadwal</h5>
                         <hr>
                         <div class="mb-3">
-    <label for="pickup_date" class="form-label required">Tanggal Penjemputan</label>
-    <input type="date" class="form-control @error('pickup_date') is-invalid @enderror" 
-           id="pickup_date" name="pickup_date" 
-           value="{{ old('pickup_date', $order->pickup_date ? $order->pickup_date->format('Y-m-d') : '') }}" required>
-    @error('pickup_date')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
+                            <label for="pickup_date" class="form-label required">Tanggal Penjemputan</label>
+                            <input type="date" class="form-control @error('pickup_date') is-invalid @enderror" 
+                                   id="pickup_date" name="pickup_date" 
+                                   value="{{ old('pickup_date', $order->pickup_date ? $order->pickup_date->format('Y-m-d') : '') }}" required>
+                            @error('pickup_date')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
 
-<div class="mb-3">
-    <label for="delivery_date" class="form-label required">Tanggal Pengantaran</label>
-    <input type="date" class="form-control @error('delivery_date') is-invalid @enderror" 
-           id="delivery_date" name="delivery_date" 
-           value="{{ old('delivery_date', $order->delivery_date ? $order->delivery_date->format('Y-m-d') : '') }}" required>
-    @error('delivery_date')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
-                        
                         <div class="mb-3">
                             <label for="delivery_date" class="form-label required">Tanggal Pengantaran</label>
                             <input type="date" class="form-control @error('delivery_date') is-invalid @enderror" 
                                    id="delivery_date" name="delivery_date" 
-                                   value="{{ old('delivery_date', $order->delivery_date->format('Y-m-d')) }}" required>
+                                   value="{{ old('delivery_date', $order->delivery_date ? $order->delivery_date->format('Y-m-d') : '') }}" required>
                             @error('delivery_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -146,6 +139,7 @@
                     </div>
                 </div>
                 
+                <!-- Tombol Aksi -->
                 <div class="d-flex justify-content-between mt-4">
                     <a href="{{ route('orders.show', $order->id) }}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Batal
@@ -159,6 +153,7 @@
     </div>
 </div>
 
+@section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const serviceSelect = document.getElementById('service_id');
@@ -186,7 +181,9 @@ document.addEventListener('DOMContentLoaded', function() {
     calculateTotal();
 });
 </script>
+@endsection
 
+@section('styles')
 <style>
     .card {
         border-radius: 10px;
@@ -199,4 +196,5 @@ document.addEventListener('DOMContentLoaded', function() {
         color: red;
     }
 </style>
+@endsection
 @endsection
