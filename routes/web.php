@@ -21,7 +21,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 Route::middleware(['auth'])->group(function () {
     // Dashboard sebagai home
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    // Route::get('/reports', [ReportController::class, 'index'])->name('reports');
+    Route::get('/dashboard/filter', [DashboardController::class, 'filter'])->name('dashboard.filter');
     
     // Resource Routes
     Route::resource('customers', CustomerController::class);
@@ -33,4 +33,5 @@ Route::middleware(['auth'])->group(function () {
     
     // Redirect root ke dashboard
     Route::redirect('/', '/dashboard');
+    Route::get('/dashboard/stats', [DashboardController::class, 'getStats'])->name('dashboard.stats');
 });

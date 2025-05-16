@@ -3,7 +3,6 @@
 @section('content')
 <div class="container-fluid">
     <div class="row">
-        <!-- Main Content -->
         <main class="col-md-12 px-md-4 py-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">Dashboard</h1>
@@ -16,116 +15,93 @@
 
             <!-- Stats Cards -->
             <div class="row mb-4">
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-primary shadow h-100 py-2">
+                @php
+                    $stats = [
+                        ['label' => 'Total Customers', 'value' => $totalCustomers, 'icon' => 'users', 'class' => 'primary'],
+                        ['label' => 'Orders (This Month)', 'value' => $monthlyOrders, 'icon' => 'clipboard-list', 'class' => 'success'],
+                        ['label' => 'Revenue (This Month)', 'value' => 'Rp ' . number_format($monthlyRevenue, 0, ',', '.'), 'icon' => 'dollar-sign', 'class' => 'warning'],
+                        ['label' => 'Pending Orders', 'value' => $pendingOrders, 'icon' => 'clock', 'class' => 'danger'],
+                    ];
+                @endphp
+
+                @foreach($stats as $stat)
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-{{ $stat['class'] }} shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-{{ $stat['class'] }} text-uppercase mb-1">
+                                            {{ $stat['label'] }}
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $stat['value'] }}</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-{{ $stat['icon'] }} fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <!-- Filter untuk Order -->
+            <div class="row mb-4">
+                <div class="col-xl-6">
+                    <div class="card shadow">
                         <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                        Total Customers</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalCustomers }}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-users fa-2x text-gray-300"></i>
-                                </div>
+                            <h6 class="fw-bold mb-2">Filter Order</h6>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary order-filter active" data-period="daily">Harian</button>
+                                <button type="button" class="btn btn-outline-primary order-filter" data-period="weekly">Mingguan</button>
+                                <button type="button" class="btn btn-outline-primary order-filter" data-period="monthly">Bulanan</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-success shadow h-100 py-2">
+                <!-- Filter untuk Revenue -->
+                <div class="col-xl-6">
+                    <div class="card shadow">
                         <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                        Orders (This Month)</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $monthlyOrders }}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-warning shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                        Revenue (This Month)</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">Rp {{ number_format($monthlyRevenue, 0, ',', '.') }}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-danger shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                        Pending Orders</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $pendingOrders }}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-clock fa-2x text-gray-300"></i>
-                                </div>
+                            <h6 class="fw-bold mb-2">Filter Revenue</h6>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-success revenue-filter active" data-period="daily">Harian</button>
+                                <button type="button" class="btn btn-outline-success revenue-filter" data-period="weekly">Mingguan</button>
+                                <button type="button" class="btn btn-outline-success revenue-filter" data-period="monthly">Bulanan</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
 
             <!-- Charts Row -->
             <div class="row">
-                <div class="col-xl-8 col-lg-7">
+                <div class="col-xl-6 col-lg-6">
                     <div class="card shadow mb-4">
                         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-primary text-white">
-                            <h6 class="m-0 font-weight-bold">Monthly Order Overview</h6>
+                            <h6 class="m-0 font-weight-bold">Daily Orders (Last 30 Days)</h6>
                         </div>
                         <div class="card-body">
-                            <div class="chart-area">
-                                <canvas id="monthlyOrderChart"></canvas>
-                            </div>
+                            <canvas id="dailyOrderChart"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-xl-4 col-lg-5">
+                <div class="col-xl-6 col-lg-6">
                     <div class="card shadow mb-4">
                         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-primary text-white">
-                            <h6 class="m-0 font-weight-bold">Order Status</h6>
+                            <h6 class="m-0 font-weight-bold">Weekly Revenue (Last 12 Weeks)</h6>
                         </div>
                         <div class="card-body">
-                            <div class="chart-pie pt-4 pb-2">
-                                <canvas id="orderStatusChart"></canvas>
-                            </div>
-                            <div class="mt-4 text-center small">
-                                <span class="me-2">
-                                    <i class="fas fa-circle text-success"></i> Completed
-                                </span>
-                                <span class="me-2">
-                                    <i class="fas fa-circle text-primary"></i> Processing
-                                </span>
-                                <span class="me-2">
-                                    <i class="fas fa-circle text-warning"></i> Pending
-                                </span>
-                            </div>
+                            <canvas id="weeklyRevenueChart"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Recent Orders -->
+            <!-- Recent Orders Table -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center bg-primary text-white">
                     <h6 class="m-0 font-weight-bold">Recent Orders</h6>
@@ -154,30 +130,31 @@
                                     <td>{{ $order->service->name }}</td>
                                     <td>Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
                                     <td>
-                                        @if($order->status == 'completed')
-                                            <span class="badge bg-success">Completed</span>
-                                        @elseif($order->status == 'processing')
-                                            <span class="badge bg-primary">Processing</span>
-                                        @else
-                                            <span class="badge bg-warning text-dark">Pending</span>
-                                        @endif
+                                        @switch($order->status)
+                                            @case('completed')
+                                                <span class="badge bg-success">Completed</span>
+                                                @break
+                                            @case('processing')
+                                                <span class="badge bg-primary">Processing</span>
+                                                @break
+                                            @default
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                        @endswitch
                                     </td>
                                     <td>
-                                        
-                                            <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-info" title="View">
+                                        <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-info" title="View">
                                             <i class="fas fa-eye"></i> View
-                                            </a>
-                                            <a href="{{ route('orders.edit', $order->id) }}" class="btn btn-sm btn-warning" title="Edit">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </a>
-                                            <form action="{{ route('orders.destroy', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger" title="Delete">
-                                                    <i class="fas fa-trash"></i> Delete
-                                                </button>
-                                            </form>
-                                        </div>
+                                        </a>
+                                        <a href="{{ route('orders.edit', $order->id) }}" class="btn btn-sm btn-warning" title="Edit">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                        <form action="{{ route('orders.destroy', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -191,162 +168,120 @@
 </div>
 @endsection
 
-@section('scripts')
-<!-- Bootstrap Bundle with Popper -->
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
 
 <script>
-    // Monthly Order Chart
-    document.addEventListener('DOMContentLoaded', function() {
-        const monthlyCtx = document.getElementById('monthlyOrderChart').getContext('2d');
-        const monthlyOrderChart = new Chart(monthlyCtx, {
-            type: 'bar',
+    let orderChart, revenueChart;
+
+    $(document).ready(function() {
+        initCharts();
+        setupFilterButtons();
+    });
+
+    function initCharts() {
+        const orderCtx = document.getElementById('dailyOrderChart').getContext('2d');
+        orderChart = new Chart(orderCtx, {
+            type: 'line',
             data: {
-                labels: @json($monthlyLabels),
+                labels: @json($dailyLabels),
                 datasets: [{
                     label: 'Orders',
-                    data: @json($monthlyData),
-                    backgroundColor: 'rgba(78, 115, 223, 0.5)',
+                    data: @json($dailyData),
+                    backgroundColor: 'rgba(78, 115, 223, 0.1)',
                     borderColor: 'rgba(78, 115, 223, 1)',
-                    borderWidth: 1
+                    borderWidth: 2,
+                    pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    fill: true
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                if (Number.isInteger(value)) {
-                                    return value;
-                                }
-                            },
-                            stepSize: 1
-                        }
-                    }
+                plugins: {
+                    legend: { display: false }
                 },
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `Orders: ${context.raw}`;
-                            }
-                        }
-                    }
+                scales: {
+                    y: { beginAtZero: true },
+                    x: { ticks: { autoSkip: true, maxTicksLimit: 10 } }
                 }
             }
         });
 
-        // Order Status Chart
-        const statusCtx = document.getElementById('orderStatusChart').getContext('2d');
-        const orderStatusChart = new Chart(statusCtx, {
-            type: 'doughnut',
+        const revenueCtx = document.getElementById('weeklyRevenueChart').getContext('2d');
+        revenueChart = new Chart(revenueCtx, {
+            type: 'bar',
             data: {
-                labels: ['Completed', 'Processing', 'Pending'],
+                labels: @json($weeklyLabels),
                 datasets: [{
-                    data: @json($orderStatusData),
-                    backgroundColor: [
-                        'rgba(28, 200, 138, 0.8)',
-                        'rgba(54, 185, 204, 0.8)',
-                        'rgba(231, 74, 59, 0.8)'
-                    ],
-                    borderColor: [
-                        'rgba(28, 200, 138, 1)',
-                        'rgba(54, 185, 204, 1)',
-                        'rgba(231, 74, 59, 1)'
-                    ],
+                    label: 'Revenue',
+                    data: @json($weeklyData),
+                    backgroundColor: 'rgba(28, 200, 138, 0.6)',
+                    borderColor: 'rgba(28, 200, 138, 1)',
                     borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
-                cutout: '70%',
                 plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.raw || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((value / total) * 100);
-                                return `${label}: ${value} (${percentage}%)`;
-                            }
-                        }
-                    }
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
                 }
             }
         });
+    }
 
-        // Enable tooltips
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
+    function setupFilterButtons() {
+    // Filter untuk Order Chart
+    $('.order-filter').on('click', function () {
+        $('.order-filter').removeClass('active');
+        $(this).addClass('active');
+        const period = $(this).data('period');
+
+        $.ajax({
+            url: '{{ route("dashboard.stats") }}',
+            type: 'GET',
+            data: { type: 'order', period: period },
+            success: function (response) {
+                orderChart.data.labels = response.labels;
+                orderChart.data.datasets[0].data = response.data;
+                orderChart.update();
+            },
+            error: function () {
+                alert('Gagal memuat data Order!');
+            }
         });
     });
-</script>
-@endsection
 
-@section('styles')
-<style>
-    .card {
-        border-radius: 0.35rem;
-        transition: all 0.3s;
-    }
+    // Filter untuk Revenue Chart
+    $('.revenue-filter').on('click', function () {
+        $('.revenue-filter').removeClass('active');
+        $(this).addClass('active');
+        const period = $(this).data('period');
+
+        $.ajax({
+            url: '{{ route("dashboard.stats") }}',
+            type: 'GET',
+            data: { type: 'revenue', period: period },
+            success: function (response) {
+                revenueChart.data.labels = response.labels;
+                revenueChart.data.datasets[0].data = response.data;
+                revenueChart.update();
+            },
+            error: function () {
+                alert('Gagal memuat data Revenue!');
+            }
+        });
+    });
+}
+
+
     
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-    }
-    
-    .border-left-primary {
-        border-left: 0.25rem solid #4e73df !important;
-    }
-    
-    .border-left-success {
-        border-left: 0.25rem solid #1cc88a !important;
-    }
-    
-    .border-left-warning {
-        border-left: 0.25rem solid #f6c23e !important;
-    }
-    
-    .border-left-danger {
-        border-left: 0.25rem solid #e74a3b !important;
-    }
-    
-    .chart-area {
-        position: relative;
-        height: 20rem;
-        width: 100%;
-    }
-    
-    .chart-pie {
-        position: relative;
-        height: 15rem;
-        width: 100%;
-    }
-    
-    .table-responsive {
-        overflow-x: auto;
-    }
-    
-    .btn-group .btn {
-        padding: 0.25rem 0.5rem;
-    }
-    
-    .card-header.bg-primary {
-        background-color: #4e73df !important;
-    }
-</style>
-@endsection
+
+</script>
+@endpush
