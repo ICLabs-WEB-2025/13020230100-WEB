@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Repositories\OrderStatisticsRepository;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -50,79 +51,73 @@ class DashboardController extends Controller
         $weeklyRevenue = [];
 
         foreach ($weeklyStats as $stat) {
-            $weeklyLabels[] = 'Minggu ' . $stat->week . ' ' . $stat->year;
+            $startOfWeek = Carbon::now()->setISODate($stat->year, $stat->week)->startOfWeek();
+            $weeklyLabels[] = $startOfWeek->translatedFormat('d F Y'); // e.g., 05 Mei 2025
             $weeklyData[] = $stat->count;
             $weeklyRevenue[] = (float) $stat->revenue ?? 0;
         }
 
-        // Data status order
         $orderStatusData = [
             $orderStatusStats['completed'] ?? 0,
             $orderStatusStats['processing'] ?? 0,
-            $orderStatusStats['pending'] ?? 0
+            $orderStatusStats['pending'] ?? 0,
         ];
 
         return view('dashboard', [
-            'totalCustomers' => $dashboardStats['totalCustomers'] ?? 0,
-            'monthlyOrders' => $dashboardStats['monthlyOrders'] ?? 0,
-            'monthlyRevenue' => $dashboardStats['monthlyRevenue'] ?? 0,
-            'pendingOrders' => $dashboardStats['pendingOrders'] ?? 0,
-            'recentOrders' => $dashboardStats['recentOrders'] ?? [],
-            'monthlyLabels' => $monthlyLabels,
-            'monthlyData' => $monthlyData,
-            'monthlyRevenueData' => $monthlyRevenue,
-            'dailyLabels' => $dailyLabels,
-            'dailyData' => $dailyData,
-            'dailyRevenueData' => $dailyRevenue,
-            'weeklyLabels' => $weeklyLabels,
-            'weeklyData' => $weeklyData,
+            'totalCustomers'    => $dashboardStats['totalCustomers'] ?? 0,
+            'monthlyOrders'     => $dashboardStats['monthlyOrders'] ?? 0,
+            'monthlyRevenue'    => $dashboardStats['monthlyRevenue'] ?? 0,
+            'pendingOrders'     => $dashboardStats['pendingOrders'] ?? 0,
+            'recentOrders'      => $dashboardStats['recentOrders'] ?? [],
+            'totalRevenue'      => $dashboardStats['totalRevenue'] ?? 0,
+            'unpaidAmount'      => $dashboardStats['unpaidAmount'] ?? 0,
+            'netProfit'         => $dashboardStats['netProfit'] ?? 0,
+            'monthlyLabels'     => $monthlyLabels,
+            'monthlyData'       => $monthlyData,
+            'monthlyRevenueData'=> $monthlyRevenue,
+            'dailyLabels'       => $dailyLabels,
+            'dailyData'         => $dailyData,
+            'dailyRevenueData'  => $dailyRevenue,
+            'weeklyLabels'      => $weeklyLabels,
+            'weeklyData'        => $weeklyData,
             'weeklyRevenueData' => $weeklyRevenue,
-            'orderStatusData' => $orderStatusData
+            'orderStatusData'   => $orderStatusData,
         ]);
     }
 
     public function getStats(Request $request)
     {
         $period = $request->query('period', 'daily');
-        $type = $request->query('type', 'order'); // ⬅️ ini ditambahkan
+        $type = $request->query('type', 'order');
 
         $stats = [];
+        $labels = [];
+        $data = [];
 
         switch ($period) {
             case 'weekly':
                 $stats = $this->statsRepository->getWeeklyStats();
-                $labels = [];
-                $data = [];
-
                 foreach ($stats as $stat) {
-                    $label = 'Minggu ' . $stat->week . ' ' . $stat->year;
-                    $labels[] = $label;
-                    $data[] = $type === 'order' ? (int) $stat->count : (float) $stat->revenue ?? 0;
+                    $startOfWeek = Carbon::now()->setISODate($stat->year, $stat->week)->startOfWeek();
+                    $labels[] = $startOfWeek->translatedFormat('d F Y');
+                    $data[] = $type === 'order' ? (int) $stat->count : (float) ($stat->revenue ?? 0);
                 }
                 break;
 
             case 'monthly':
                 $stats = $this->statsRepository->getMonthlyStats();
-                $labels = [];
-                $data = [];
-
                 foreach ($stats as $stat) {
-                    $label = date('M Y', mktime(0, 0, 0, $stat->month, 1, $stat->year));
-                    $labels[] = $label;
-                    $data[] = $type === 'order' ? (int) $stat->count : (float) $stat->revenue ?? 0;
+                    $labels[] = date('M Y', mktime(0, 0, 0, $stat->month, 1, $stat->year));
+                    $data[] = $type === 'order' ? (int) $stat->count : (float) ($stat->revenue ?? 0);
                 }
                 break;
 
             case 'daily':
             default:
                 $stats = $this->statsRepository->getDailyStats();
-                $labels = [];
-                $data = [];
-
                 foreach ($stats as $stat) {
-                    $label = date('d M', strtotime($stat->date));
-                    $labels[] = $label;
-                    $data[] = $type === 'order' ? (int) $stat->count : (float) $stat->revenue ?? 0;
+                    $labels[] = date('d M Y', strtotime($stat->date));
+                    $data[] = $type === 'order' ? (int) $stat->count : (float) ($stat->revenue ?? 0);
                 }
                 break;
         }
@@ -131,5 +126,5 @@ class DashboardController extends Controller
             'labels' => $labels,
             'data' => $data,
         ]);
-}
+    }
 }

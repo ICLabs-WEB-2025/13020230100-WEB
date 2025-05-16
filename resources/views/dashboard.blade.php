@@ -177,9 +177,14 @@
     let orderChart, revenueChart;
 
     $(document).ready(function() {
-        initCharts();
-        setupFilterButtons();
-    });
+    initCharts();
+    setupFilterButtons();
+
+    // 🔁 Jalankan filter aktif di awal agar sinkron
+    $('.order-filter.active').trigger('click');
+    $('.revenue-filter.active').trigger('click');
+});
+
 
     function initCharts() {
         const orderCtx = document.getElementById('dailyOrderChart').getContext('2d');

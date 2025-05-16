@@ -9,11 +9,46 @@ use App\Models\Customer; // Tambahkan ini
 
 class OrderController extends Controller
 {
-    public function index()
-    {
-        $orders = Order::with('customer')->latest()->get();
-        return view('orders.index', compact('orders'));
+    public function index(Request $request)
+{
+    $query = Order::with('customer', 'service');
+    
+    // Filter berdasarkan status
+    if ($request->has('status') && $request->status != '') {
+        $query->where('status', $request->status);
     }
+
+    // Filter berdasarkan customer name
+    if ($request->has('customer') && $request->customer != '') {
+        $query->whereHas('customer', function ($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->customer . '%');
+        });
+    }
+
+    // Filter berdasarkan tanggal
+    if ($request->has('date_from') && $request->date_from != '') {
+        $query->whereDate('pickup_date', '>=', $request->date_from);
+    }
+    if ($request->has('date_to') && $request->date_to != '') {
+        $query->whereDate('pickup_date', '<=', $request->date_to);
+    }
+
+    // Filter berdasarkan layanan
+    if ($request->has('service_id') && $request->service_id != '') {
+        $query->where('service_id', $request->service_id);
+    }
+
+    // Ambil data orders yang sudah difilter
+    $orders = $query->latest()->get();
+
+    // Ambil data layanan
+    $services = Service::orderBy('name')->get();
+
+    // Kirim data orders dan services ke tampilan
+    return view('orders.index', compact('orders', 'services'));
+}
+
+
 
 
     public function create()

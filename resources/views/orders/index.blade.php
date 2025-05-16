@@ -13,6 +13,63 @@
                 </div>
             </div>
 
+            <!-- Dropdown Filter -->
+            <div class="dropdown mb-4">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Filter Pesanan
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                    <li>
+                        <form method="GET" action="{{ route('orders.index') }}" class="px-3 py-2">
+                            <!-- Status -->
+                            <div class="mb-2">
+                                <label for="status" class="form-label">Status</label>
+                                <select name="status" id="status" class="form-select">
+                                    <option value="">Semua</option>
+                                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
+                                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                                    <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                </select>
+                            </div>
+
+                            <!-- Nama Customer -->
+                            <div class="mb-2">
+                                <label for="customer" class="form-label">Nama Customer</label>
+                                <input type="text" name="customer" id="customer" class="form-control" placeholder="Cari nama"
+                                    value="{{ request('customer') }}">
+                            </div>
+
+                            <!-- Tanggal -->
+                            <div class="mb-2">
+                                <label for="date_from" class="form-label">Dari Tanggal</label>
+                                <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request('date_from') }}">
+                            </div>
+                            <div class="mb-2">
+                                <label for="date_to" class="form-label">Sampai Tanggal</label>
+                                <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request('date_to') }}">
+                            </div>
+
+                            <!-- Jenis Layanan -->
+                            <div class="mb-2">
+                                <label for="service_id" class="form-label">Jenis Layanan</label>
+                                <select name="service_id" id="service_id" class="form-select">
+                                    <option value="">Semua Layanan</option>
+                                    @foreach($services as $service)
+                                        <option value="{{ $service->id }}" {{ request('service_id') == $service->id ? 'selected' : '' }}>
+                                            {{ $service->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 mt-3">Terapkan Filter</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Daftar Order -->
             <div class="card shadow mb-4">
                 <div class="card-body">
                     <div class="table-responsive">
@@ -22,7 +79,7 @@
                                     <th>ID</th>
                                     <th>Customer</th>
                                     <th>Layanan</th>
-                                    <th>Jumlah</th>
+                                    <th>Total Harga</th>
                                     <th>Status</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -79,8 +136,8 @@
 
 @section('styles')
 <style>
-    .table {
-        margin: 0 auto;
+    .form-label {
+        font-weight: bold;
     }
     .badge {
         padding: 0.5em 0.75em;
@@ -100,26 +157,5 @@
         padding: 0.25rem 0.5rem;
         margin: 0 2px;
     }
-    @media (max-width: 768px) {
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-    }
 </style>
-@endsection
-
-@section('scripts')
-@if(session('success'))
-<script>
-    Swal.fire({
-        icon: 'success',
-        title: 'Sukses',
-        text: '{{ session('success') }}',
-        showConfirmButton: false,
-        timer: 2000
-    });
-</script>
-@endif
 @endsection
