@@ -65,10 +65,15 @@
                     <div class="card shadow">
                         <div class="card-body">
                             <h6 class="fw-bold mb-2">Filter Revenue</h6>
-                            <div class="btn-group" role="group">
+                            <div class="btn-group mb-2" role="group">
                                 <button type="button" class="btn btn-outline-success revenue-filter active" data-period="daily">Harian</button>
                                 <button type="button" class="btn btn-outline-success revenue-filter" data-period="weekly">Mingguan</button>
                                 <button type="button" class="btn btn-outline-success revenue-filter" data-period="monthly">Bulanan</button>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-secondary revenue-type-filter active" data-type="total">Total Pendapatan</button>
+                                <button type="button" class="btn btn-outline-secondary revenue-type-filter" data-type="unpaid">Belum Diterima</button>
+                                <button type="button" class="btn btn-outline-secondary revenue-type-filter" data-type="profit">Laba Bersih</button>
                             </div>
                         </div>
                     </div>
@@ -177,13 +182,13 @@
     let orderChart, revenueChart;
 
     $(document).ready(function() {
-    initCharts();
-    setupFilterButtons();
+        initCharts();
+        setupFilterButtons();
 
-    // 🔁 Jalankan filter aktif di awal agar sinkron
-    $('.order-filter.active').trigger('click');
-    $('.revenue-filter.active').trigger('click');
-});
+        // 🔁 Jalankan filter aktif di awal agar sinkron
+        $('.order-filter.active').trigger('click');
+        $('.revenue-filter.active').trigger('click');
+    });
 
 
     function initCharts() {
@@ -242,6 +247,8 @@
     }
 
     function setupFilterButtons() {
+    let selectedRevenueType = 'total';
+
     // Filter untuk Order Chart
     $('.order-filter').on('click', function () {
         $('.order-filter').removeClass('active');
@@ -263,6 +270,14 @@
         });
     });
 
+    // Filter untuk Revenue Type
+    $('.revenue-type-filter').on('click', function () {
+        $('.revenue-type-filter').removeClass('active');
+        $(this).addClass('active');
+        selectedRevenueType = $(this).data('type');
+        $('.revenue-filter.active').trigger('click'); // Refresh chart dengan tipe baru
+    });
+
     // Filter untuk Revenue Chart
     $('.revenue-filter').on('click', function () {
         $('.revenue-filter').removeClass('active');
@@ -272,21 +287,58 @@
         $.ajax({
             url: '{{ route("dashboard.stats") }}',
             type: 'GET',
-            data: { type: 'revenue', period: period },
+            data: { 
+                type: 'revenue', 
+                period: period, 
+                revenue_type: selectedRevenueType 
+            },
             success: function (response) {
+                // Debug: cek data yang diterima
+                console.log('Revenue Data:', response);
+                
+                const config = {
+                    total: {
+                        label: 'Total Pendapatan',
+                        color: 'rgba(28, 200, 138, 0.6)',
+                        borderColor: 'rgba(28, 200, 138, 1)'
+                    },
+                    unpaid: {
+                        label: 'Belum Diterima',
+                        color: 'rgba(246, 194, 62, 0.6)',
+                        borderColor: 'rgba(246, 194, 62, 1)'
+                    },
+                    profit: {
+                        label: 'Laba Bersih',
+                        color: 'rgba(54, 185, 204, 0.6)',
+                        borderColor: 'rgba(54, 185, 204, 1)'
+                    }
+                };
+
+                // Update chart dengan konfigurasi yang sesuai
                 revenueChart.data.labels = response.labels;
                 revenueChart.data.datasets[0].data = response.data;
+                revenueChart.data.datasets[0].label = config[selectedRevenueType].label;
+                revenueChart.data.datasets[0].backgroundColor = config[selectedRevenueType].color;
+                revenueChart.data.datasets[0].borderColor = config[selectedRevenueType].borderColor;
+
+                // Format angka ke format rupiah dan pastikan nilai tidak undefined
+                revenueChart.options.scales.y = {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'Rp ' + (value || 0).toLocaleString('id-ID');
+                        }
+                    }
+                };
+
                 revenueChart.update();
             },
-            error: function () {
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
                 alert('Gagal memuat data Revenue!');
             }
         });
     });
 }
-
-
-    
-
 </script>
 @endpush

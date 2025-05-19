@@ -89,6 +89,7 @@ class DashboardController extends Controller
     {
         $period = $request->query('period', 'daily');
         $type = $request->query('type', 'order');
+        $revenueType = $request->query('revenue_type', 'total');
 
         $stats = [];
         $labels = [];
@@ -100,24 +101,55 @@ class DashboardController extends Controller
                 foreach ($stats as $stat) {
                     $startOfWeek = Carbon::now()->setISODate($stat->year, $stat->week)->startOfWeek();
                     $labels[] = $startOfWeek->translatedFormat('d F Y');
-                    $data[] = $type === 'order' ? (int) $stat->count : (float) ($stat->revenue ?? 0);
+                    if ($type === 'order') {
+                        $data[] = (int) $stat->count;
+                    } else {
+                        if ($revenueType === 'total') {
+                            $data[] = (float) ($stat->revenue ?? 0);
+                        } elseif ($revenueType === 'unpaid') {
+                            $data[] = (float) ($stat->unpaid ?? 0);
+                        } elseif ($revenueType === 'profit') {
+                            $operationalCost = 0.3;
+                            $data[] = (float) ($stat->revenue ?? 0) * (1 - $operationalCost);
+                        }
+                    }
                 }
                 break;
-
             case 'monthly':
                 $stats = $this->statsRepository->getMonthlyStats();
                 foreach ($stats as $stat) {
                     $labels[] = date('M Y', mktime(0, 0, 0, $stat->month, 1, $stat->year));
-                    $data[] = $type === 'order' ? (int) $stat->count : (float) ($stat->revenue ?? 0);
+                    if ($type === 'order') {
+                        $data[] = (int) $stat->count;
+                    } else {
+                        if ($revenueType === 'total') {
+                            $data[] = (float) ($stat->revenue ?? 0);
+                        } elseif ($revenueType === 'unpaid') {
+                            $data[] = (float) ($stat->unpaid ?? 0);
+                        } elseif ($revenueType === 'profit') {
+                            $operationalCost = 0.3;
+                            $data[] = (float) ($stat->revenue ?? 0) * (1 - $operationalCost);
+                        }
+                    }
                 }
                 break;
-
             case 'daily':
             default:
                 $stats = $this->statsRepository->getDailyStats();
                 foreach ($stats as $stat) {
                     $labels[] = date('d M Y', strtotime($stat->date));
-                    $data[] = $type === 'order' ? (int) $stat->count : (float) ($stat->revenue ?? 0);
+                    if ($type === 'order') {
+                        $data[] = (int) $stat->count;
+                    } else {
+                        if ($revenueType === 'total') {
+                            $data[] = (float) ($stat->revenue ?? 0);
+                        } elseif ($revenueType === 'unpaid') {
+                            $data[] = (float) ($stat->unpaid ?? 0);
+                        } elseif ($revenueType === 'profit') {
+                            $operationalCost = 0.3;
+                            $data[] = (float) ($stat->revenue ?? 0) * (1 - $operationalCost);
+                        }
+                    }
                 }
                 break;
         }

@@ -16,13 +16,16 @@ class OrderStatisticsRepository
         $estimatedOperationalCost = 0.3; // 30% dari total revenue
 
         $totalRevenue = Order::where('status', 'completed')->sum('total_price');
-        $unpaidAmount = Order::where('status', 'pending')->sum('total_price');
+        // Jika unpaid amount ingin menghitung status 'pending' dan 'processing'
+        $unpaidAmount = Order::whereIn('status', ['pending', 'processing'])->sum('total_price');
         $netProfit = $totalRevenue * (1 - $estimatedOperationalCost);
 
         return [
             'totalCustomers'  => Customer::count(),
+            // Konsisten: hanya order completed yang dihitung
             'monthlyOrders'   => Order::whereMonth('created_at', $now->month)
                                       ->whereYear('created_at', $now->year)
+                                      ->where('status', 'completed')
                                       ->count(),
             'monthlyRevenue'  => Order::whereMonth('created_at', $now->month)
                                       ->whereYear('created_at', $now->year)

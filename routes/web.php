@@ -1,11 +1,12 @@
 <?php
-namespace App\Http\Controllers; 
 
-use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\OrderController;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ServiceController;
 
 // Route untuk auth
 Route::middleware('guest')->group(function () {
@@ -15,23 +16,22 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
 });
 
+// Logout
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Route dengan middleware auth
 Route::middleware(['auth'])->group(function () {
-    // Dashboard sebagai home
+    // Redirect root ke dashboard
+    Route::redirect('/', '/dashboard');
+
+    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/filter', [DashboardController::class, 'filter'])->name('dashboard.filter');
-    
+    Route::get('/dashboard/stats', [DashboardController::class, 'getStats'])->name('dashboard.stats');
+
     // Resource Routes
     Route::resource('customers', CustomerController::class);
     Route::resource('orders', OrderController::class);
     Route::resource('reports', ReportController::class);
-    
-    // Route tambahan
-    Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
-    
-    // Redirect root ke dashboard
-    Route::redirect('/', '/dashboard');
-    Route::get('/dashboard/stats', [DashboardController::class, 'getStats'])->name('dashboard.stats');
+    Route::resource('services', ServiceController::class); // Ini untuk menu Services
 });

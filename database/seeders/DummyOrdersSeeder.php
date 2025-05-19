@@ -14,7 +14,7 @@ class DummyOrdersSeeder extends Seeder
     {
         // Pastikan ada customer dan service terlebih dahulu
         if (Customer::count() === 0) {
-            $this->call(CustomersSeeder::class); // Ganti dengan seeder customer Anda
+            $this->call(CustomerSeeder::class); // Ganti dengan seeder customer Anda
         }
 
         if (Service::count() === 0) {

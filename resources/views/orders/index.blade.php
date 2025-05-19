@@ -13,61 +13,82 @@
                 </div>
             </div>
 
-            <!-- Dropdown Filter -->
-            <div class="dropdown mb-4">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    Filter Pesanan
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="filterDropdown">
-                    <li>
-                        <form method="GET" action="{{ route('orders.index') }}" class="px-3 py-2">
-                            <!-- Status -->
-                            <div class="mb-2">
-                                <label for="status" class="form-label">Status</label>
-                                <select name="status" id="status" class="form-select">
-                                    <option value="">Semua</option>
-                                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
-                                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
-                                    <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                                </select>
-                            </div>
 
-                            <!-- Nama Customer -->
-                            <div class="mb-2">
-                                <label for="customer" class="form-label">Nama Customer</label>
-                                <input type="text" name="customer" id="customer" class="form-control" placeholder="Cari nama"
-                                    value="{{ request('customer') }}">
-                            </div>
+            <!-- Filter Bar -->
+            <div class="d-flex mb-4 align-items-start gap-2 flex-wrap">
+                <!-- Tombol Filter Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Filter Pesanan
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                        <li>
+                            <form method="GET" action="{{ route('orders.index') }}" class="px-3 py-2">
+                                <!-- Status -->
+                                <div class="mb-2">
+                                    <label for="status" class="form-label">Status</label>
+                                    <select name="status" id="status" class="form-select">
+                                        <option value="">Semua</option>
+                                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                        <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
+                                        <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                    </select>
+                                </div>
 
-                            <!-- Tanggal -->
-                            <div class="mb-2">
-                                <label for="date_from" class="form-label">Dari Tanggal</label>
-                                <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request('date_from') }}">
-                            </div>
-                            <div class="mb-2">
-                                <label for="date_to" class="form-label">Sampai Tanggal</label>
-                                <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request('date_to') }}">
-                            </div>
+                                <!-- Tanggal -->
+                                <div class="mb-2">
+                                    <label for="date_from" class="form-label">Dari Tanggal</label>
+                                    <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request('date_from') }}">
+                                </div>
+                                <div class="mb-2">
+                                    <label for="date_to" class="form-label">Sampai Tanggal</label>
+                                    <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request('date_to') }}">
+                                </div>
 
-                            <!-- Jenis Layanan -->
-                            <div class="mb-2">
-                                <label for="service_id" class="form-label">Jenis Layanan</label>
-                                <select name="service_id" id="service_id" class="form-select">
-                                    <option value="">Semua Layanan</option>
-                                    @foreach($services as $service)
-                                        <option value="{{ $service->id }}" {{ request('service_id') == $service->id ? 'selected' : '' }}>
-                                            {{ $service->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
+                                <!-- Jenis Layanan -->
+                                <div class="mb-2">
+                                    <label for="service_id" class="form-label">Jenis Layanan</label>
+                                    <select name="service_id" id="service_id" class="form-select">
+                                        <option value="">Semua Layanan</option>
+                                        @foreach($services as $service)
+                                            <option value="{{ $service->id }}" {{ request('service_id') == $service->id ? 'selected' : '' }}>
+                                                {{ $service->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
-                            <button type="submit" class="btn btn-primary w-100 mt-3">Terapkan Filter</button>
-                        </form>
-                    </li>
-                </ul>
+                                <!-- Urutkan Berdasarkan ID -->
+                                <div class="mb-2">
+                                    <label for="sort_id" class="form-label">Urutkan ID</label>
+                                    <select name="sort_id" id="sort_id" class="form-select">
+                                        <option value="">Default</option>
+                                        <option value="asc" {{ request('sort_id') == 'asc' ? 'selected' : '' }}>ID Terendah (A-Z)</option>
+                                        <option value="desc" {{ request('sort_id') == 'desc' ? 'selected' : '' }}>ID Tertinggi (Z-A)</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100 mt-3">Terapkan Filter</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Form Pencarian Customer -->
+                <form method="GET" action="{{ route('orders.index') }}" class="d-flex gap-2">
+                    <input type="text" name="customer" class="form-control" placeholder="Cari nama customer..." value="{{ request('customer') }}">
+                    
+                    @foreach (['status', 'date_from', 'date_to', 'service_id', 'sort_id'] as $field)
+                        @if(request()->has($field))
+                            <input type="hidden" name="{{ $field }}" value="{{ request($field) }}">
+                        @endif
+                    @endforeach
+
+                    <button type="submit" class="btn btn-primary">Cari</button>
+                </form>
             </div>
+
 
             <!-- Daftar Order -->
             <div class="card shadow mb-4">
@@ -126,6 +147,11 @@
                                 @endforeach
                             </tbody>
                         </table>
+
+                        <!-- Pagination -->
+                        <div class="mt-3">
+                            {{ $orders->links('pagination::bootstrap-5') }}
+                        </div>
                     </div>
                 </div>
             </div>
