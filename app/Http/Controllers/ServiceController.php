@@ -25,11 +25,10 @@ class ServiceController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
+            'price_per_kg' => 'required|numeric|min:0',
         ]);
 
-        Service::create($request->only(['name', 'description', 'price']));
+        Service::create($request->only(['name', 'price_per_kg']));
 
         return redirect()->route('services.index')->with('success', 'Layanan berhasil ditambahkan!');
     }
@@ -41,32 +40,26 @@ class ServiceController extends Controller
         return view('services.show', compact('service'));
     }
 
-        // Form edit layanan
-        public function edit($id)
-        {
-            $service = Service::findOrFail($id);
-            return view('services.edit', compact('service'));
-        }
+    // Form edit layanan
+    public function edit($id)
+    {
+        $service = Service::findOrFail($id);
+        return view('services.edit', compact('service'));
+    }
 
     // Proses update layanan
     public function update(Request $request, $id)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
             'price_per_kg' => 'required|numeric|min:0',
         ]);
 
         $service = Service::findOrFail($id);
-        $service->update([
-            'name' => $request->name,
-            'description' => $request->description,
-            'price_per_kg' => $request->price_per_kg,
-        ]);
+        $service->update($request->only(['name', 'price_per_kg']));
 
         return redirect()->route('services.index')->with('success', 'Layanan berhasil diperbarui!');
     }
-
 
     // Hapus layanan
     public function destroy($id)

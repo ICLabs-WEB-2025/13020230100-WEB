@@ -4,6 +4,11 @@
 
 @section('content')
 <div class="container mt-4">
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{{ route('services.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Tambah Layanan Baru
+        </a>
+    </div>
 
     @if ($services->isEmpty())
         <div class="alert alert-info">
@@ -15,7 +20,6 @@
                 <tr>
                     <th>No</th>
                     <th>Nama Layanan</th>
-                    <th>Deskripsi</th>
                     <th>Harga per KG</th>
                     <th>Aksi</th>
                 </tr>
@@ -25,7 +29,6 @@
                     <tr>
                         <td>{{ $index + 1 }}</td>
                         <td>{{ $service->name }}</td>
-                        <td>{{ $service->description }}</td>
                         <td>Rp {{ number_format($service->price_per_kg, 0, ',', '.') }}</td>
                         <td>
                             <a href="{{ route('services.edit', $service->id) }}" class="btn btn-sm btn-primary">

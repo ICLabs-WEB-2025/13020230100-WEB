@@ -57,11 +57,7 @@ class DashboardController extends Controller
             $weeklyRevenue[] = (float) $stat->revenue ?? 0;
         }
 
-        $orderStatusData = [
-            $orderStatusStats['completed'] ?? 0,
-            $orderStatusStats['processing'] ?? 0,
-            $orderStatusStats['pending'] ?? 0,
-        ];
+        $orderStatusData = $this->statsRepository->getOrderStatusStats(); // Menggunakan kunci status seperti 'pending', 'processing', 'completed', dan 'cancelled'
 
         return view('dashboard', [
             'totalCustomers'    => $dashboardStats['totalCustomers'] ?? 0,

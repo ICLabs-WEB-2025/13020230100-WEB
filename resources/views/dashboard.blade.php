@@ -26,7 +26,7 @@
 
                 @foreach($stats as $stat)
                     <div class="col-xl-3 col-md-6 mb-4">
-                        <div class="card border-left-{{ $stat['class'] }} shadow h-100 py-2">
+                        <div class="card border-left-{{ $stat['class'] }} shadow h-100 py-2 stats-card">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
                                     <div class="col mr-2">
@@ -45,51 +45,29 @@
                 @endforeach
             </div>
 
-            <!-- Filter untuk Order -->
-            <div class="row mb-4">
-                <div class="col-xl-6">
-                    <div class="card shadow">
-                        <div class="card-body">
-                            <h6 class="fw-bold mb-2">Filter Order</h6>
-                            <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-outline-primary order-filter active" data-period="daily">Harian</button>
-                                <button type="button" class="btn btn-outline-primary order-filter" data-period="weekly">Mingguan</button>
-                                <button type="button" class="btn btn-outline-primary order-filter" data-period="monthly">Bulanan</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Filter untuk Revenue -->
-                <div class="col-xl-6">
-                    <div class="card shadow">
-                        <div class="card-body">
-                            <h6 class="fw-bold mb-2">Filter Revenue</h6>
-                            <div class="btn-group mb-2" role="group">
-                                <button type="button" class="btn btn-outline-success revenue-filter active" data-period="daily">Harian</button>
-                                <button type="button" class="btn btn-outline-success revenue-filter" data-period="weekly">Mingguan</button>
-                                <button type="button" class="btn btn-outline-success revenue-filter" data-period="monthly">Bulanan</button>
-                            </div>
-                            <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-outline-secondary revenue-type-filter active" data-type="total">Total Pendapatan</button>
-                                <button type="button" class="btn btn-outline-secondary revenue-type-filter" data-type="unpaid">Belum Diterima</button>
-                                <button type="button" class="btn btn-outline-secondary revenue-type-filter" data-type="profit">Laba Bersih</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
             <!-- Charts Row -->
             <div class="row">
                 <div class="col-xl-6 col-lg-6">
                     <div class="card shadow mb-4">
                         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-primary text-white">
-                            <h6 class="m-0 font-weight-bold">Daily Orders (Last 30 Days)</h6>
+                            <h6 class="m-0 font-weight-bold">Weekly Revenue (Last 12 Weeks)</h6>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="revenueFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.85rem;">
+                                    Filter Pendapatan
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="revenueFilterDropdown">
+                                    <li><button class="dropdown-item revenue-filter active" data-period="daily" style="font-size: 0.85rem;">Harian</button></li>
+                                    <li><button class="dropdown-item revenue-filter" data-period="weekly" style="font-size: 0.85rem;">Mingguan</button></li>
+                                    <li><button class="dropdown-item revenue-filter" data-period="monthly" style="font-size: 0.85rem;">Bulanan</button></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><button class="dropdown-item revenue-type-filter active" data-type="total" style="font-size: 0.85rem;">Total</button></li>
+                                    <li><button class="dropdown-item revenue-type-filter" data-type="unpaid" style="font-size: 0.85rem;">Belum Diterima</button></li>
+                                    <li><button class="dropdown-item revenue-type-filter" data-type="profit" style="font-size: 0.85rem;">Laba Bersih</button></li>
+                                </ul>
+                            </div>
                         </div>
                         <div class="card-body">
-                            <canvas id="dailyOrderChart"></canvas>
+                            <canvas id="weeklyRevenueChart" style="max-height: 200px;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -97,10 +75,10 @@
                 <div class="col-xl-6 col-lg-6">
                     <div class="card shadow mb-4">
                         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-primary text-white">
-                            <h6 class="m-0 font-weight-bold">Weekly Revenue (Last 12 Weeks)</h6>
+                            <h6 class="m-0 font-weight-bold">Order Status Distribution</h6>
                         </div>
                         <div class="card-body">
-                            <canvas id="weeklyRevenueChart"></canvas>
+                            <canvas id="orderStatusPieChart" style="max-height: 200px;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -158,8 +136,7 @@
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-danger" title="Delete">
                                                 <i class="fas fa-trash"></i> Delete
-                                            </button>
-                                        </form>
+                                            </form>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -186,41 +163,11 @@
         setupFilterButtons();
 
         // 🔁 Jalankan filter aktif di awal agar sinkron
-        $('.order-filter.active').trigger('click');
         $('.revenue-filter.active').trigger('click');
     });
 
 
     function initCharts() {
-        const orderCtx = document.getElementById('dailyOrderChart').getContext('2d');
-        orderChart = new Chart(orderCtx, {
-            type: 'line',
-            data: {
-                labels: @json($dailyLabels),
-                datasets: [{
-                    label: 'Orders',
-                    data: @json($dailyData),
-                    backgroundColor: 'rgba(78, 115, 223, 0.1)',
-                    borderColor: 'rgba(78, 115, 223, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(78, 115, 223, 1)',
-                    pointRadius: 3,
-                    pointHoverRadius: 5,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: { beginAtZero: true },
-                    x: { ticks: { autoSkip: true, maxTicksLimit: 10 } }
-                }
-            }
-        });
-
         const revenueCtx = document.getElementById('weeklyRevenueChart').getContext('2d');
         revenueChart = new Chart(revenueCtx, {
             type: 'bar',
@@ -248,27 +195,6 @@
 
     function setupFilterButtons() {
     let selectedRevenueType = 'total';
-
-    // Filter untuk Order Chart
-    $('.order-filter').on('click', function () {
-        $('.order-filter').removeClass('active');
-        $(this).addClass('active');
-        const period = $(this).data('period');
-
-        $.ajax({
-            url: '{{ route("dashboard.stats") }}',
-            type: 'GET',
-            data: { type: 'order', period: period },
-            success: function (response) {
-                orderChart.data.labels = response.labels;
-                orderChart.data.datasets[0].data = response.data;
-                orderChart.update();
-            },
-            error: function () {
-                alert('Gagal memuat data Order!');
-            }
-        });
-    });
 
     // Filter untuk Revenue Type
     $('.revenue-type-filter').on('click', function () {
@@ -340,5 +266,84 @@
         });
     });
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('orderStatusPieChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: @json(array_keys($orderStatusData)),
+                datasets: [{
+                    data: @json(array_values($orderStatusData)),
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            boxWidth: 10, // Reduce the size of the legend box
+                            boxHeight: 10 // Optional: Adjust height if needed
+                        }
+                    },
+                },
+            },
+        });
+    });
 </script>
 @endpush
+
+<style>
+    .card {
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+        background: linear-gradient(90deg, #4e73df, #1cc88a);
+        color: white;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .card-body {
+        background-color: #f8f9fc;
+    }
+
+    .chart-container {
+        position: relative;
+        margin: auto;
+        height: 300px;
+        width: 100%;
+    }
+
+    .stats-card {
+        transition: transform 0.2s;
+    }
+
+    .stats-card:hover {
+        transform: scale(1.05);
+    }
+
+    .btn-primary {
+        background-color: #4e73df;
+        border-color: #4e73df;
+    }
+
+    .btn-primary:hover {
+        background-color: #2e59d9;
+        border-color: #2653d4;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Add animations to cards
+        const cards = document.querySelectorAll('.stats-card');
+        cards.forEach(card => {
+            card.classList.add('animate__animated', 'animate__fadeInUp');
+        });
+    });
+</script>

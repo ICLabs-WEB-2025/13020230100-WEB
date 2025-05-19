@@ -26,7 +26,6 @@ Route::middleware(['auth'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard/filter', [DashboardController::class, 'filter'])->name('dashboard.filter');
     Route::get('/dashboard/stats', [DashboardController::class, 'getStats'])->name('dashboard.stats');
 
     // Resource Routes
