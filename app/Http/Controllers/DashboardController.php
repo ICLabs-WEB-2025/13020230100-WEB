@@ -163,20 +163,38 @@ class DashboardController extends Controller
 
     public function userDashboard()
     {
-        $recentOrders = \App\Models\Order::where('customer_id', auth()->id())->latest()->take(5)->get();
+        $userName = auth()->user()->name;
+        $userId = auth()->id();
+
+        $customerId = \App\Models\Customer::where('name', $userName)
+            ->where('user_id', $userId)
+            ->value('id');
+
+        $recentOrders = \App\Models\Order::where('customer_id', $customerId)
+            ->distinct()
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $totalPrice = \App\Models\Order::where('customer_id', $customerId)
+            ->sum('total_price');
 
         // Debug log untuk memeriksa pengguna yang sedang login
-        Log::info('Logged-in User:', ['id' => auth()->id(), 'email' => auth()->user()->email]);
+        Log::info('Logged-in User:', ['id' => auth()->id(), 'email' => auth()->user()->email, 'name' => $userName]);
 
         // Debug log untuk memeriksa pesanan yang diambil
         Log::info('Recent Orders:', $recentOrders->toArray());
+        Log::info('Total Price:', ['totalPrice' => $totalPrice]);
 
-        // Debug log untuk memeriksa semua pesanan di tabel orders
-        $allOrders = \App\Models\Order::all();
-        Log::info('All Orders:', $allOrders->toArray());
+        Log::info('Query Debugging:', [
+            'userName' => $userName,
+            'userId' => $userId,
+            'recentOrders' => $recentOrders->toArray(),
+        ]);
 
         return view('dashboard.user', [
             'recentOrders' => $recentOrders,
+            'totalPrice' => $totalPrice,
         ]);
     }
 }

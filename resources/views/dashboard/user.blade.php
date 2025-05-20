@@ -25,7 +25,7 @@
                         <tr>
                             <td>{{ $order->id }}</td>
                             <td>{{ $order->status }}</td>
-                            <td>{{ $order->total }}</td>
+                            <td>{{ number_format($order->total_price, 2) }}</td>
                             <td>{{ $order->created_at->format('d M Y') }}</td>
                         </tr>
                     @endforeach
