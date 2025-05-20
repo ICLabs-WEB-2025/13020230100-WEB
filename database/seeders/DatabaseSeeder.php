@@ -13,6 +13,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Hapus semua data di tabel users sebelum menambahkan data baru
+        User::truncate();
+
         // User::factory(10)->create();
         $this->call([
         // ... seeders lain
@@ -22,6 +25,14 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+        ]);
+
+        // Tambahkan akun admin secara langsung
+        User::create([
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
+            'password' => bcrypt('admin123'), // Ganti dengan password yang aman
+            'role' => 'admin',
         ]);
     }
 }

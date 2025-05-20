@@ -16,6 +16,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
+        'role', // Add role to fillable attributes
     ];
 
     protected $hidden = [
@@ -26,4 +27,22 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Check if the user is an admin.
+     *
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Relasi ke orders.
+     */
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'customer_id');
+    }
 }

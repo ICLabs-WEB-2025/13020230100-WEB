@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Customer; // Pastikan model Customer di-import
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -71,11 +72,22 @@ class AuthController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
+            'role' => 'user', // Set default role to 'user'
+        ]);
+
+        // Tambahkan pengguna sebagai customer
+        Customer::create([
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $request->phone,
+            'address' => $request->address ?? null, // Tambahkan alamat jika tersedia
         ]);
 
         Auth::login($user);
 
-        return redirect('/dashboard')->with('success', 'Registrasi berhasil!');
+        Auth::logout(); // Logout user after registration
+
+        return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login untuk melanjutkan.');
     }
 
     /**

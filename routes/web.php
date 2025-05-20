@@ -21,8 +21,13 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 
 // Route dengan middleware auth
 Route::middleware(['auth'])->group(function () {
-    // Redirect root ke dashboard
-    Route::redirect('/', '/dashboard');
+    // Redirect root ke dashboard sesuai role
+    Route::get('/dashboard', function () {
+        if (auth()->user()->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+        return redirect()->route('user.dashboard');
+    })->name('dashboard');
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -37,4 +42,13 @@ Route::middleware(['auth'])->group(function () {
     // Update status pesanan
     Route::post('/orders/{id}/update-status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::get('/orders/{id}/update-status', [OrderController::class, 'updateStatusForm'])->name('orders.updateStatusForm');
+});
+
+// Route untuk dashboard berdasarkan role
+Route::middleware(['auth'])->group(function () {
+    // Admin dashboard
+    Route::get('/admin/dashboard', [DashboardController::class, 'adminDashboard'])->name('admin.dashboard');
+
+    // User dashboard
+    Route::get('/user/dashboard', [DashboardController::class, 'userDashboard'])->name('user.dashboard');
 });

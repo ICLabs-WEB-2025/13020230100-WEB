@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Repositories\OrderStatisticsRepository;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
@@ -17,68 +18,10 @@ class DashboardController extends Controller
 
     public function index()
     {
-        $dashboardStats = $this->statsRepository->getDashboardStats();
-        $orderStatusStats = $this->statsRepository->getOrderStatusStats();
-        $monthlyStats = $this->statsRepository->getMonthlyStats();
-        $dailyStats = $this->statsRepository->getDailyStats();
-        $weeklyStats = $this->statsRepository->getWeeklyStats();
-
-        // Format data bulanan
-        $monthlyLabels = [];
-        $monthlyData = [];
-        $monthlyRevenue = [];
-
-        foreach ($monthlyStats as $stat) {
-            $monthlyLabels[] = date('M Y', mktime(0, 0, 0, $stat->month, 1, $stat->year));
-            $monthlyData[] = $stat->count;
-            $monthlyRevenue[] = (float) $stat->revenue ?? 0;
+        if (auth()->user()->isAdmin()) {
+            return redirect()->route('admin.dashboard');
         }
-
-        // Format data harian
-        $dailyLabels = [];
-        $dailyData = [];
-        $dailyRevenue = [];
-
-        foreach ($dailyStats as $stat) {
-            $dailyLabels[] = date('d M', strtotime($stat->date));
-            $dailyData[] = $stat->count;
-            $dailyRevenue[] = (float) $stat->revenue ?? 0;
-        }
-
-        // Format data mingguan
-        $weeklyLabels = [];
-        $weeklyData = [];
-        $weeklyRevenue = [];
-
-        foreach ($weeklyStats as $stat) {
-            $startOfWeek = Carbon::now()->setISODate($stat->year, $stat->week)->startOfWeek();
-            $weeklyLabels[] = $startOfWeek->translatedFormat('d F Y'); // e.g., 05 Mei 2025
-            $weeklyData[] = $stat->count;
-            $weeklyRevenue[] = (float) $stat->revenue ?? 0;
-        }
-
-        $orderStatusData = $this->statsRepository->getOrderStatusStats(); // Menggunakan kunci status seperti 'pending', 'processing', 'completed', dan 'cancelled'
-
-        return view('dashboard', [
-            'totalCustomers'    => $dashboardStats['totalCustomers'] ?? 0,
-            'monthlyOrders'     => $dashboardStats['monthlyOrders'] ?? 0,
-            'monthlyRevenue'    => $dashboardStats['monthlyRevenue'] ?? 0,
-            'pendingOrders'     => $dashboardStats['pendingOrders'] ?? 0,
-            'recentOrders'      => $dashboardStats['recentOrders'] ?? [],
-            'totalRevenue'      => $dashboardStats['totalRevenue'] ?? 0,
-            'unpaidAmount'      => $dashboardStats['unpaidAmount'] ?? 0,
-            'netProfit'         => $dashboardStats['netProfit'] ?? 0,
-            'monthlyLabels'     => $monthlyLabels,
-            'monthlyData'       => $monthlyData,
-            'monthlyRevenueData'=> $monthlyRevenue,
-            'dailyLabels'       => $dailyLabels,
-            'dailyData'         => $dailyData,
-            'dailyRevenueData'  => $dailyRevenue,
-            'weeklyLabels'      => $weeklyLabels,
-            'weeklyData'        => $weeklyData,
-            'weeklyRevenueData' => $weeklyRevenue,
-            'orderStatusData'   => $orderStatusData,
-        ]);
+        return redirect()->route('user.dashboard');
     }
 
     public function getStats(Request $request)
@@ -153,6 +96,87 @@ class DashboardController extends Controller
         return response()->json([
             'labels' => $labels,
             'data' => $data,
+        ]);
+    }
+
+    public function adminDashboard()
+    {
+        $dashboardStats = $this->statsRepository->getDashboardStats();
+        $monthlyStats = $this->statsRepository->getMonthlyStats();
+        $dailyStats = $this->statsRepository->getDailyStats();
+        $weeklyStats = $this->statsRepository->getWeeklyStats();
+
+        $monthlyLabels = [];
+        $monthlyData = [];
+        $monthlyRevenue = [];
+
+        foreach ($monthlyStats as $stat) {
+            $monthlyLabels[] = date('M Y', mktime(0, 0, 0, $stat->month, 1, $stat->year));
+            $monthlyData[] = $stat->count;
+            $monthlyRevenue[] = (float) $stat->revenue ?? 0;
+        }
+
+        $dailyLabels = [];
+        $dailyData = [];
+        $dailyRevenue = [];
+
+        foreach ($dailyStats as $stat) {
+            $dailyLabels[] = date('d M', strtotime($stat->date));
+            $dailyData[] = $stat->count;
+            $dailyRevenue[] = (float) $stat->revenue ?? 0;
+        }
+
+        $weeklyLabels = [];
+        $weeklyData = [];
+        $weeklyRevenue = [];
+
+        foreach ($weeklyStats as $stat) {
+            $startOfWeek = Carbon::now()->setISODate($stat->year, $stat->week)->startOfWeek();
+            $weeklyLabels[] = $startOfWeek->translatedFormat('d F Y');
+            $weeklyData[] = $stat->count;
+            $weeklyRevenue[] = (float) $stat->revenue ?? 0;
+        }
+
+        $orderStatusData = $this->statsRepository->getOrderStatusStats();
+
+        return view('dashboardAdmin', [
+            'totalCustomers'    => $dashboardStats['totalCustomers'] ?? 0,
+            'monthlyOrders'     => $dashboardStats['monthlyOrders'] ?? 0,
+            'monthlyRevenue'    => $dashboardStats['monthlyRevenue'] ?? 0,
+            'pendingOrders'     => $dashboardStats['pendingOrders'] ?? 0,
+            'recentOrders'      => $dashboardStats['recentOrders'] ?? [],
+            'totalRevenue'      => $dashboardStats['totalRevenue'] ?? 0,
+            'unpaidAmount'      => $dashboardStats['unpaidAmount'] ?? 0,
+            'netProfit'         => $dashboardStats['netProfit'] ?? 0,
+            'monthlyLabels'     => $monthlyLabels,
+            'monthlyData'       => $monthlyData,
+            'monthlyRevenueData'=> $monthlyRevenue,
+            'dailyLabels'       => $dailyLabels,
+            'dailyData'         => $dailyData,
+            'dailyRevenueData'  => $dailyRevenue,
+            'weeklyLabels'      => $weeklyLabels,
+            'weeklyData'        => $weeklyData,
+            'weeklyRevenueData' => $weeklyRevenue,
+            'orderStatusData'   => $orderStatusData,
+        ]);
+    }
+
+    public function userDashboard()
+    {
+        $recentOrders = \App\Models\Order::where('customer_id', auth()->id())->latest()->take(5)->get();
+
+        // Debug log untuk memeriksa pengguna yang sedang login
+        Log::info('Logged-in User:', ['id' => auth()->id(), 'email' => auth()->user()->email]);
+
+        // Debug log untuk memeriksa pesanan yang diambil
+        Log::info('Recent Orders:', $recentOrders->toArray());
+
+        // Debug log untuk memeriksa semua pesanan di tabel orders
+        $allOrders = \App\Models\Order::all();
+        Log::info('All Orders:', $allOrders->toArray());
+
+        return view('dashboard.user', [
+            'recentOrders' => $recentOrders,
         ]);
     }
 }
