@@ -33,4 +33,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('orders', OrderController::class);
     Route::resource('reports', ReportController::class);
     Route::resource('services', ServiceController::class); // Ini untuk menu Services
+
+    // Update status pesanan
+    Route::post('/orders/{id}/update-status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+    Route::get('/orders/{id}/update-status', [OrderController::class, 'updateStatusForm'])->name('orders.updateStatusForm');
 });

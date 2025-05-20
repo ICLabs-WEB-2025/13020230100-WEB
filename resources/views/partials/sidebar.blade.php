@@ -6,27 +6,27 @@
         </div>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link text-white {{ Request::is('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                     <i class="fas fa-tachometer-alt me-2"></i> Dashboard
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-white {{ Request::is('customers*') ? 'active' : '' }}" href="{{ route('customers.index') }}">
+                <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('customers*') ? 'active' : '' }}" href="{{ route('customers.index') }}">
                     <i class="fas fa-users me-2"></i> Customers
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-white {{ Request::is('services*') ? 'active' : '' }}" href="{{ route('services.index') }}">
+                <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('services*') ? 'active' : '' }}" href="{{ route('services.index') }}">
                     <i class="fas fa-concierge-bell me-2"></i> Services
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-white {{ Request::is('orders*') ? 'active' : '' }}" href="{{ route('orders.index') }}">
+                <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('orders*') ? 'active' : '' }}" href="{{ route('orders.index') }}">
                     <i class="fas fa-clipboard-list me-2"></i> Orders
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-white {{ Request::is('reports*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
+                <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('reports*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
                     <i class="fas fa-chart-bar me-2"></i> Reports
                 </a>
             </li>

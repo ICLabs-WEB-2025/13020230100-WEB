@@ -123,4 +123,26 @@ class OrderController extends Controller
             return back()->with('error', 'Failed to delete order');
         }
     }
+
+    public function updateStatusForm($id)
+    {
+        $order = Order::findOrFail($id);
+        $statuses = ['pending', 'processing', 'completed', 'cancelled'];
+        return view('orders.update-status', compact('order', 'statuses'));
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $order = Order::findOrFail($id);
+
+        $validated = $request->validate([
+            'status' => 'required|in:pending,processing,completed,cancelled',
+        ]);
+
+        $order->status = $validated['status'];
+        $order->save();
+
+        return redirect()->route('orders.show', $order->id)
+            ->with('success', 'Status pesanan berhasil diperbarui.');
+    }
 }

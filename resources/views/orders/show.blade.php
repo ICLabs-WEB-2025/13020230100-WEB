@@ -112,6 +112,19 @@
                     <p><strong>Catatan:</strong> {{ $order->notes ?? '-' }}</p>
                 </div>
             </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="text-center">Barcode Pesanan</h5>
+                    <hr>
+                    <form action="{{ route('orders.updateStatus', ['id' => $order->id]) }}" method="POST">
+                        @csrf
+                        <div class="p-3 border rounded bg-light text-center">
+                            {!! QrCode::size(150)->generate(route('orders.updateStatus', ['id' => $order->id])) !!}
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <div class="card-footer bg-light">
