@@ -179,6 +179,10 @@ class DashboardController extends Controller
         $totalPrice = \App\Models\Order::where('customer_id', $customerId)
             ->sum('total_price');
 
+        $totalOrders = \App\Models\Order::where('customer_id', $customerId)->count();
+        $totalSpent = \App\Models\Order::where('customer_id', $customerId)->sum('total_price');
+        $pendingOrders = \App\Models\Order::where('customer_id', $customerId)->where('status', 'pending')->count();
+
         // Debug log untuk memeriksa pengguna yang sedang login
         Log::info('Logged-in User:', ['id' => auth()->id(), 'email' => auth()->user()->email, 'name' => $userName]);
 
@@ -195,6 +199,9 @@ class DashboardController extends Controller
         return view('dashboard.user', [
             'recentOrders' => $recentOrders,
             'totalPrice' => $totalPrice,
+            'totalOrders' => $totalOrders,
+            'totalSpent' => $totalSpent,
+            'pendingOrders' => $pendingOrders,
         ]);
     }
 }
