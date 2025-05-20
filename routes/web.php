@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\UserController;
 
 // Route untuk auth
 Route::middleware('guest')->group(function () {
@@ -42,6 +43,11 @@ Route::middleware(['auth'])->group(function () {
     // Update status pesanan
     Route::post('/orders/{id}/update-status', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::get('/orders/{id}/update-status', [OrderController::class, 'updateStatusForm'])->name('orders.updateStatusForm');
+
+    // User-specific routes
+    Route::get('/user/profile', [UserController::class, 'profile'])->name('user.profile');
+    Route::get('/user/orders', [OrderController::class, 'userOrders'])->name('user.orders');
+    Route::get('/user/settings', [UserController::class, 'settings'])->name('user.settings');
 });
 
 // Route untuk dashboard berdasarkan role

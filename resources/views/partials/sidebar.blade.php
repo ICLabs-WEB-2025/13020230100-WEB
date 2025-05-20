@@ -5,31 +5,54 @@
             <h4 class="text-white">Laundry-In</h4>
         </div>
         <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('dashboard') ? 'active' : '' }}" href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('user.dashboard') }}">
-                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('customers*') ? 'active' : '' }}" href="{{ route('customers.index') }}">
-                    <i class="fas fa-users me-2"></i> Customers
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('services*') ? 'active' : '' }}" href="{{ route('services.index') }}">
-                    <i class="fas fa-concierge-bell me-2"></i> Services
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('orders*') ? 'active' : '' }}" href="{{ route('orders.index') }}">
-                    <i class="fas fa-clipboard-list me-2"></i> Orders
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('reports*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
-                    <i class="fas fa-chart-bar me-2"></i> Reports
-                </a>
-            </li>
+            @if(auth()->user()->isAdmin())
+                <li class="nav-item">
+                    <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}">
+                        <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('customers*') ? 'active' : '' }}" href="{{ route('customers.index') }}">
+                        <i class="fas fa-users me-2"></i> Customers
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('services*') ? 'active' : '' }}" href="{{ route('services.index') }}">
+                        <i class="fas fa-concierge-bell me-2"></i> Services
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('orders*') ? 'active' : '' }}" href="{{ route('orders.index') }}">
+                        <i class="fas fa-clipboard-list me-2"></i> Orders
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('reports*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
+                        <i class="fas fa-chart-bar me-2"></i> Reports
+                    </a>
+                </li>
+            @else
+                <li class="nav-item">
+                    <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('dashboard') ? 'active' : '' }}" href="{{ route('user.dashboard') }}">
+                        <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('user/orders*') ? 'active' : '' }}" href="{{ route('user.orders') }}">
+                        <i class="fas fa-clipboard-list me-2"></i> My Orders
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('user/profile*') ? 'active' : '' }}" href="{{ route('user.profile') }}">
+                        <i class="fas fa-user me-2"></i> Profile
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white {{ \Illuminate\Support\Facades\Request::is('user/settings*') ? 'active' : '' }}" href="{{ route('user.settings') }}">
+                        <i class="fas fa-cog me-2"></i> Settings
+                    </a>
+                </li>
+            @endif
         </ul>
 
         <!-- Logout Section -->
@@ -49,16 +72,16 @@
         min-height: 100vh;
         transition: all 0.3s;
     }
-    
+
     .sidebar-footer {
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         background-color: rgba(0, 0, 0, 0.1);
     }
-    
+
     .nav-link.active {
         background-color: rgba(255, 255, 255, 0.1);
     }
-    
+
     .sidebar-overlay {
         display: none;
         position: fixed;
@@ -69,7 +92,7 @@
         background-color: rgba(0, 0, 0, 0.5);
         z-index: 1040;
     }
-    
+
     @media (max-width: 767.98px) {
         .sidebar {
             position: fixed;
@@ -78,7 +101,7 @@
             height: 100vh;
             left: -250px;
         }
-        
+
         .sidebar.show {
             left: 0;
         }
