@@ -1,4 +1,3 @@
-<!-- resources/views/parts/sidebar.blade.php -->
 <nav id="sidebar" class="col-md-3 col-lg-2 sidebar" style="background: linear-gradient(180deg, #3b82f6, #1e3a8a); position: fixed; top: 0; left: 0; height: 100vh; z-index: 1050;">
     <div class="d-flex flex-column h-100">
         <div class="text-center mb-4 pt-4">

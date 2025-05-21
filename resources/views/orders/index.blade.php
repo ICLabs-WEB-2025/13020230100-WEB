@@ -10,9 +10,8 @@
 
             <!-- Filter Bar -->
             <div class="d-flex mb-4 align-items-start gap-2 flex-wrap justify-content-between">
-                <!-- Container for Filter and Search -->
                 <div class="d-flex align-items-start gap-2" style="min-width: 30vw;">
-                    <!-- Tombol Filter Dropdown -->
+                    <!-- Filter Dropdown -->
                     <div class="dropdown">
                         <button class="btn btn-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             Filter Pesanan
@@ -72,7 +71,7 @@
                     </div>
 
                     <!-- Form Pencarian Customer -->
-                    <form class="d-flex gap-2" id="searchForm" style="width: 100%; flex-shrink: 0;">
+                    <form class="d-flex gap-2" id="searchForm" method="GET" action="{{ route('orders.index') }}" style="width: 100%; flex-shrink: 0;">
                         <input type="text" name="customer" id="customerSearch" class="form-control" placeholder="Cari nama customer..." value="{{ request('customer') }}" style="min-width: 60% !important;">
                         
                         @foreach (['status', 'date_from', 'date_to', 'service_id', 'sort_id'] as $field)
@@ -80,6 +79,8 @@
                                 <input type="hidden" name="{{ $field }}" value="{{ request($field) }}">
                             @endif
                         @endforeach
+
+                        <button type="submit" class="btn btn-outline-primary">Cari</button>
                     </form>
                 </div>
 
@@ -112,11 +113,7 @@
                                         <td>{{ $order->id }}</td>
                                         <td>{{ $order->customer->name }}</td>
                                         <td>
-                                            @if($order->service)
-                                                {{ $order->service->name }}
-                                            @else
-                                                <span class="text-danger">N/A</span>
-                                            @endif
+                                            {{ $order->service->name ?? 'N/A' }}
                                         </td>
                                         <td>Rp {{ number_format($order->total_price, 0, ',', '.') }}</td>
                                         <td>
@@ -139,7 +136,7 @@
                                             <form action="{{ route('orders.destroy', $order->id) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger" title="Delete" onclick="return confirm('Yakin ingin menghapus pesanan ini?')">
+                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus pesanan ini?')">
                                                     <i class="fas fa-trash"></i> Hapus
                                                 </button>
                                             </form>
@@ -164,7 +161,7 @@
 @section('styles')
 <style>
     .container-fluid {
-        max-width: 1000px; /* Membatasi lebar container agar lebih rapi */
+        max-width: 1000px;
         margin: 2rem auto;
         padding: 0 15px;
     }
@@ -173,17 +170,6 @@
         border-radius: 8px;
         overflow: hidden;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .card-header {
-        background-color: #f8f9fa;
-        padding: 0.75rem;
-    }
-
-    .card-header .h2 {
-        color: #2c3e50;
-        font-weight: 600;
-        margin: 0;
     }
 
     .btn-primary {
@@ -200,29 +186,6 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .table {
-        background-color: #fff;
-        border-radius: 0;
-    }
-
-    .thead-light th {
-        background-color: #f8f9fa;
-        color: #2c3e50;
-        font-weight: 600;
-        text-align: center;
-        padding: 0.75rem;
-    }
-
-    .table td {
-        vertical-align: middle;
-        padding: 0.75rem;
-        color: #34495e;
-    }
-
-    .table tr {
-        transition: background-color 0.2s ease;
-    }
-
     .table tr:hover {
         background-color: #f1f3f5;
     }
@@ -230,105 +193,7 @@
     .btn-sm {
         padding: 0.4rem 0.8rem;
         font-size: 0.9rem;
-        border-radius: 15px;
-    }
-
-    .btn-primary.btn-sm {
-        background-color: #007bff;
-    }
-
-    .btn-primary.btn-sm:hover {
-        background-color: #0056b3;
-    }
-
-    .btn-info.btn-sm {
-        background-color: #17a2b8;
-    }
-
-    .btn-info.btn-sm:hover {
-        background-color: #138496;
-    }
-
-    .btn-danger.btn-sm {
-        background-color: #dc3545;
-        border: none;
-    }
-
-    .btn-danger.btn-sm:hover {
-        background-color: #c82333;
-    }
-
-    .badge {
-        padding: 0.5em 0.75em;
-        font-size: 0.85em;
-        font-weight: 600;
-    }
-
-    .bg-success {
-        background-color: #28a745 !important;
-    }
-
-    .bg-warning {
-        background-color: #ffc107 !important;
-    }
-
-    .bg-danger {
-        background-color: #dc3545 !important;
-    }
-
-    /* Responsivitas */
-    @media (max-width: 768px) {
-        .table {
-            font-size: 0.85rem;
-        }
-
-        .btn-sm {
-            padding: 0.3rem 0.6rem;
-            font-size: 0.8rem;
-        }
-
-        .container-fluid {
-            margin: 1rem auto;
-            padding: 0 10px;
-        }
+        border-radius: 0.25rem;
     }
 </style>
-@endsection
-
-@section('scripts')
-<script>
-    // Debounce function to limit the rate of search requests
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-
-    // Initialize DataTable and set up real-time search
-    $(document).ready(function() {
-        const table = $('#dataTable').DataTable({
-            responsive: true,
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json'
-            }
-        });
-
-        // Real-time search on customer input
-        const searchInput = document.getElementById('customerSearch');
-        if (searchInput) {
-            const debouncedSearch = debounce(function() {
-                // Filter the "Customer" column (index 1, since ID is 0)
-                table.column(1).search(searchInput.value).draw();
-            }, 300);
-
-            searchInput.addEventListener('input', debouncedSearch);
-        }
-    });
-</script>
 @endsection
