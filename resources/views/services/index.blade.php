@@ -19,8 +19,8 @@
                             Belum ada data layanan yang tersedia.
                         </div>
                     @else
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover" id="servicesTable" width="100%" cellspacing="0">
+                        <div class="table-responsive" style="overflow-x: auto;">
+                            <table class="table table-bordered table-hover" id="servicesTable" width="100%" cellspacing="0" style="white-space: nowrap;">
                                 <thead class="thead-dark">
                                     <tr>
                                         <th width="10%">No</th>
@@ -36,14 +36,14 @@
                                             <td>{{ $service->name }}</td>
                                             <td>Rp {{ number_format($service->price_per_kg, 0, ',', '.') }}</td>
                                             <td>
-                                                <div class="d-flex justify-content-center gap-2">
-                                                    <a href="{{ route('services.edit', $service->id) }}" class="btn btn-warning btn-sm">
+                                                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                                    <a href="{{ route('services.edit', $service->id) }}" class="btn btn-warning btn-sm mb-1">
                                                         <i class="fas fa-edit"></i> Edit
                                                     </a>
                                                     <form action="{{ route('services.destroy', $service->id) }}" method="POST" style="display: inline;">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus layanan ini?')">
+                                                        <button type="submit" class="btn btn-danger btn-sm mb-1" onclick="return confirm('Yakin ingin menghapus layanan ini?')">
                                                             <i class="fas fa-trash"></i> Hapus
                                                         </button>
                                                     </form>

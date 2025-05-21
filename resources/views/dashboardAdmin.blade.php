@@ -3,12 +3,12 @@
 @section('content')
 <div class="container-fluid">
     <div class="row">
-        <main class="col-md-12 px-md-4 py-4">
+        <main class="col-12 px-3 px-md-4 py-3 py-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">Dashboard</h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
                     <a href="{{ route('orders.create') }}" class="btn btn-sm btn-primary">
-                        <i class="fas fa-plus me-1"></i> New Order
+                        <i class="fas fa-plus me-1"></i> Tambah pesanan
                     </a>
                 </div>
             </div>
@@ -25,7 +25,7 @@
                 @endphp
 
                 @foreach($stats as $stat)
-                    <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="col-12 col-sm-6 col-lg-3 mb-4">
                         <div class="card border-left-{{ $stat['class'] }} shadow h-100 py-2 stats-card">
                             <div class="card-body">
                                 <div class="row no-gutters align-items-center">
@@ -47,38 +47,38 @@
 
             <!-- Charts Row -->
             <div class="row">
-                <div class="col-xl-6 col-lg-6">
-                    <div class="card shadow mb-4">
+                <div class="col-12 col-md-6 mb-4">
+                    <div class="card shadow">
                         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-primary text-white">
                             <h6 class="m-0 font-weight-bold">Weekly Revenue (Last 12 Weeks)</h6>
                             <div class="dropdown">
-                                <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="revenueFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 0.85rem;">
+                                <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="revenueFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                     Filter Pendapatan
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="revenueFilterDropdown">
-                                    <li><button class="dropdown-item revenue-filter active" data-period="daily" style="font-size: 0.85rem;">Harian</button></li>
-                                    <li><button class="dropdown-item revenue-filter" data-period="weekly" style="font-size: 0.85rem;">Mingguan</button></li>
-                                    <li><button class="dropdown-item revenue-filter" data-period="monthly" style="font-size: 0.85rem;">Bulanan</button></li>
+                                    <li><button class="dropdown-item revenue-filter active" data-period="daily">Harian</button></li>
+                                    <li><button class="dropdown-item revenue-filter" data-period="weekly">Mingguan</button></li>
+                                    <li><button class="dropdown-item revenue-filter" data-period="monthly">Bulanan</button></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><button class="dropdown-item revenue-type-filter active" data-type="total" style="font-size: 0.85rem;">Total</button></li>
-                                    <li><button class="dropdown-item revenue-type-filter" data-type="unpaid" style="font-size: 0.85rem;">Belum Diterima</button></li>
-                                    <li><button class="dropdown-item revenue-type-filter" data-type="profit" style="font-size: 0.85rem;">Laba Bersih</button></li>
+                                    <li><button class="dropdown-item revenue-type-filter active" data-type="total">Total</button></li>
+                                    <li><button class="dropdown-item revenue-type-filter" data-type="unpaid">Belum Diterima</button></li>
+                                    <li><button class="dropdown-item revenue-type-filter" data-type="profit">Laba Bersih</button></li>
                                 </ul>
                             </div>
                         </div>
                         <div class="card-body">
-                            <canvas id="weeklyRevenueChart" style="max-height: 200px;"></canvas>
+                            <canvas id="weeklyRevenueChart" style="max-height: 250px;"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-xl-6 col-lg-6">
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between bg-primary text-white">
+                <div class="col-12 col-md-6 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header py-3 bg-primary text-white">
                             <h6 class="m-0 font-weight-bold">Order Status Distribution</h6>
                         </div>
                         <div class="card-body">
-                            <canvas id="orderStatusPieChart" style="max-height: 200px;"></canvas>
+                            <canvas id="orderStatusPieChart" style="max-height: 250px;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -126,17 +126,18 @@
                                     </td>
                                     <td>
                                         <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-info" title="View">
-                                            <i class="fas fa-eye"></i> View
+                                            <i class="fas fa-eye"></i>
                                         </a>
                                         <a href="{{ route('orders.edit', $order->id) }}" class="btn btn-sm btn-warning" title="Edit">
-                                            <i class="fas fa-edit"></i> Edit
+                                            <i class="fas fa-edit"></i>
                                         </a>
                                         <form action="{{ route('orders.destroy', $order->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-danger" title="Delete">
-                                                <i class="fas fa-trash"></i> Delete
-                                            </form>
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -145,7 +146,6 @@
                     </div>
                 </div>
             </div>
-
         </main>
     </div>
 </div>
@@ -157,55 +157,102 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
 
 <script>
-    let orderChart, revenueChart;
+// Namespace untuk menghindari konflik
+window.Dashboard = window.Dashboard || {};
 
-    $(document).ready(function() {
+// Deklarasi revenueChart dalam namespace
+if (!window.Dashboard.revenueChart) {
+    window.Dashboard.revenueChart = null;
+}
+
+$(document).ready(function() {
+    // Cegah inisialisasi ganda
+    if (!window.Dashboard.initialized) {
+        console.log('Initializing dashboard...');
         initCharts();
         setupFilterButtons();
-
-        // 🔁 Jalankan filter aktif di awal agar sinkron
         $('.revenue-filter.active').trigger('click');
-    });
+        window.Dashboard.initialized = true;
+    } else {
+        console.log('Dashboard already initialized, skipping...');
+    }
+});
 
+function initCharts() {
+    console.log('Initializing charts...');
+    const revenueCtx = document.getElementById('weeklyRevenueChart').getContext('2d');
 
-    function initCharts() {
-        const revenueCtx = document.getElementById('weeklyRevenueChart').getContext('2d');
-        revenueChart = new Chart(revenueCtx, {
-            type: 'bar',
-            data: {
-                labels: @json($weeklyLabels),
-                datasets: [{
-                    label: 'Revenue',
-                    data: @json($weeklyData),
-                    backgroundColor: 'rgba(28, 200, 138, 0.6)',
-                    borderColor: 'rgba(28, 200, 138, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
+    // Hancurkan chart sebelumnya jika ada
+    if (window.Dashboard.revenueChart) {
+        console.log('Destroying previous revenueChart...');
+        window.Dashboard.revenueChart.destroy();
     }
 
-    function setupFilterButtons() {
+    window.Dashboard.revenueChart = new Chart(revenueCtx, {
+        type: 'bar',
+        data: {
+            labels: @json($weeklyLabels),
+            datasets: [{
+                label: 'Revenue',
+                data: @json($weeklyData),
+                backgroundColor: 'rgba(28, 200, 138, 0.6)',
+                borderColor: 'rgba(28, 200, 138, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'Rp ' + value.toLocaleString('id-ID');
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    const statusCtx = document.getElementById('orderStatusPieChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'pie',
+        data: {
+            labels: @json(array_keys($orderStatusData)),
+            datasets: [{
+                data: @json(array_values($orderStatusData)),
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        boxWidth: 10
+                    }
+                },
+            }
+        },
+    });
+}
+
+function setupFilterButtons() {
+    console.log('Setting up filter buttons...');
     let selectedRevenueType = 'total';
 
-    // Filter untuk Revenue Type
     $('.revenue-type-filter').on('click', function () {
         $('.revenue-type-filter').removeClass('active');
         $(this).addClass('active');
         selectedRevenueType = $(this).data('type');
-        $('.revenue-filter.active').trigger('click'); // Refresh chart dengan tipe baru
+        $('.revenue-filter.active').trigger('click');
     });
 
-    // Filter untuk Revenue Chart
     $('.revenue-filter').on('click', function () {
         $('.revenue-filter').removeClass('active');
         $(this).addClass('active');
@@ -214,15 +261,13 @@
         $.ajax({
             url: '{{ route("dashboard.stats") }}',
             type: 'GET',
-            data: { 
-                type: 'revenue', 
-                period: period, 
-                revenue_type: selectedRevenueType 
+            data: {
+                type: 'revenue',
+                period: period,
+                revenue_type: selectedRevenueType
             },
             success: function (response) {
-                // Debug: cek data yang diterima
-                console.log('Revenue Data:', response);
-                
+                console.log('Revenue data loaded:', response);
                 const config = {
                     total: {
                         label: 'Total Pendapatan',
@@ -241,58 +286,26 @@
                     }
                 };
 
-                // Update chart dengan konfigurasi yang sesuai
-                revenueChart.data.labels = response.labels;
-                revenueChart.data.datasets[0].data = response.data;
-                revenueChart.data.datasets[0].label = config[selectedRevenueType].label;
-                revenueChart.data.datasets[0].backgroundColor = config[selectedRevenueType].color;
-                revenueChart.data.datasets[0].borderColor = config[selectedRevenueType].borderColor;
-
-                // Format angka ke format rupiah dan pastikan nilai tidak undefined
-                revenueChart.options.scales.y = {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return 'Rp ' + (value || 0).toLocaleString('id-ID');
-                        }
-                    }
-                };
-
-                revenueChart.update();
+                // Pastikan chart ada sebelum update
+                if (window.Dashboard.revenueChart) {
+                    window.Dashboard.revenueChart.data.labels = response.labels;
+                    window.Dashboard.revenueChart.data.datasets[0].data = response.data;
+                    window.Dashboard.revenueChart.data.datasets[0].label = config[selectedRevenueType].label;
+                    window.Dashboard.revenueChart.data.datasets[0].backgroundColor = config[selectedRevenueType].color;
+                    window.Dashboard.revenueChart.data.datasets[0].borderColor = config[selectedRevenueType].borderColor;
+                    window.Dashboard.revenueChart.update();
+                    console.log('Revenue chart updated');
+                } else {
+                    console.error('revenueChart not initialized');
+                }
             },
             error: function (xhr, status, error) {
-                console.error('Error:', error);
+                console.error('Failed to load revenue data:', error);
                 alert('Gagal memuat data Revenue!');
             }
         });
     });
 }
-
-document.addEventListener('DOMContentLoaded', function () {
-        const ctx = document.getElementById('orderStatusPieChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: @json(array_keys($orderStatusData)),
-                datasets: [{
-                    data: @json(array_values($orderStatusData)),
-                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            boxWidth: 10, // Reduce the size of the legend box
-                            boxHeight: 10 // Optional: Adjust height if needed
-                        }
-                    },
-                },
-            },
-        });
-    });
 </script>
 @endpush
 
@@ -306,18 +319,10 @@ document.addEventListener('DOMContentLoaded', function () {
         background: linear-gradient(90deg, #4e73df, #1cc88a);
         color: white;
         font-weight: bold;
-        text-transform: uppercase;
     }
 
     .card-body {
         background-color: #f8f9fc;
-    }
-
-    .chart-container {
-        position: relative;
-        margin: auto;
-        height: 300px;
-        width: 100%;
     }
 
     .stats-card {
@@ -337,14 +342,22 @@ document.addEventListener('DOMContentLoaded', function () {
         background-color: #2e59d9;
         border-color: #2653d4;
     }
-</style>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Add animations to cards
-        const cards = document.querySelectorAll('.stats-card');
-        cards.forEach(card => {
-            card.classList.add('animate__animated', 'animate__fadeInUp');
-        });
-    });
-</script>
+    @media (max-width: 576px) {
+        h1.h2 {
+            font-size: 1.5rem;
+        }
+
+        .card-header h6 {
+            font-size: 0.95rem;
+        }
+
+        .dropdown-toggle, .btn, .table th, .table td {
+            font-size: 0.8rem;
+        }
+
+        .table td, .table th {
+            white-space: nowrap;
+        }
+    }
+</style>

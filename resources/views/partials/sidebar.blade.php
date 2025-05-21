@@ -64,7 +64,7 @@
                     </div>
                 </div>
                 <div class="text-start">
-                    <span class="text-white fw-bold d-block" style="font-size: 1.1rem; font-family: 'Poppins', sans-serif;">{{ auth()->user()->name }}</span>
+                    <span class="text-white fw-bold d-block" style="font-family: 'Poppins', sans-serif;">{{ auth()->user()->name }}</span>
                     <small class="text-warning fw-semibold">{{ auth()->user()->isAdmin() ? 'Admin' : 'User' }}</small>
                 </div>
             </div>
@@ -79,11 +79,20 @@
     </div>
 </nav>
 
+<!-- Sidebar Toggle Button for Mobile -->
+<button id="sidebarToggle" class="btn btn-primary d-md-none" style="position: fixed; top: 15px; left: 15px; z-index: 1060; border-radius: 50%; width: 45px; height: 45px; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <style>
     .sidebar {
-        transition: left 0.3s ease-in-out;
+        transition: transform 0.3s ease-in-out;
         box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
         z-index: 1050;
+        width: 250px;
     }
 
     .nav-link {
@@ -149,34 +158,163 @@
         opacity: 1;
     }
 
-    @media (min-width: 768px) {
+    /* Responsive Styles */
+    @media (min-width: 992px) {
+        .sidebar {
+            width: calc(100% / 12 * 2); /* Match col-lg-2 */
+            transform: translateX(0);
+        }
+
         .main-content {
-            margin-left: calc(100% / 12 * 3); /* Match col-md-3 width */
+            margin-left: calc(100% / 12 * 2);
+        }
+
+        #sidebarToggle, .sidebar-overlay {
+            display: none;
         }
     }
 
-    @media (min-width: 992px) {
+    @media (min-width: 768px) and (max-width: 991.98px) {
+        .sidebar {
+            width: calc(100% / 12 * 3); /* Match col-md-3 */
+            transform: translateX(0);
+        }
+
         .main-content {
-            margin-left: calc(100% / 12 * 2); /* Match col-lg-2 width */
+            margin-left: calc(100% / 12 * 3);
+        }
+
+        #sidebarToggle, .sidebar-overlay {
+            display: none;
         }
     }
 
     @media (max-width: 767.98px) {
         .sidebar {
-            position: fixed;
             width: 250px;
-            height: 100vh;
-            left: -250px;
-            top: 0;
-            transition: left 0.3s ease-in-out;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
         }
 
         .sidebar.show {
-            left: 0;
+            transform: translateX(0);
         }
 
         .main-content {
-            margin-left: 0 !important; /* Reset margin on mobile */
+            margin-left: 0 !important;
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        #sidebarToggle {
+            display: flex;
+        }
+
+        body.sidebar-open .sidebar {
+            transform: translateX(0);
+        }
+
+        body.sidebar-open .sidebar-overlay {
+            display: block;
+            opacity: 1;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .sidebar {
+            width: 80%;
+            max-width: 250px;
+        }
+
+        .account-identity {
+            padding: 10px;
+        }
+
+        .account-avatar .avatar-circle {
+            width: 40px;
+            height: 40px;
+        }
+
+        .account-avatar .fa-user-circle {
+            font-size: 2.5rem;
+            line-height: 40px;
+        }
+
+        .text-white.fw-bold.d-block {
+            font-size: 1rem;
+        }
+
+        .btn-outline-danger {
+            font-size: 0.8rem;
+            padding: 5px;
         }
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        // Function to toggle sidebar
+        function toggleSidebar() {
+            sidebar.classList.toggle('show');
+            document.body.classList.toggle('sidebar-open');
+            sidebarOverlay.classList.toggle('show');
+        }
+
+        // Function to close sidebar
+        function closeSidebar() {
+            sidebar.classList.remove('show');
+            document.body.classList.remove('sidebar-open');
+            sidebarOverlay.classList.remove('show');
+        }
+
+        // Toggle sidebar on hamburger menu click
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation(); // Prevent click from bubbling to body
+                toggleSidebar();
+            });
+        }
+
+        // Close sidebar when overlay is clicked
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeSidebar);
+        }
+
+        // Close sidebar when clicking a nav link on mobile
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function () {
+                if (window.innerWidth <= 767.98) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        // Close sidebar when clicking logout button on mobile
+        const logoutButton = document.querySelector('.btn-outline-danger');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', function () {
+                if (window.innerWidth <= 767.98) {
+                    closeSidebar();
+                }
+            });
+        }
+
+        // Close sidebar on outside click
+        document.addEventListener('click', function (e) {
+            if (window.innerWidth <= 767.98 && sidebar.classList.contains('show') && !sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                closeSidebar();
+            }
+        });
+
+        // Handle window resize to ensure sidebar state is correct
+        window.addEventListener('resize', function () {
+            if (window.innerWidth > 767.98) {
+                closeSidebar();
+            }
+        });
+    });
+</script>
