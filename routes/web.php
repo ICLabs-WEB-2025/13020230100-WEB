@@ -58,3 +58,33 @@ Route::middleware(['auth'])->group(function () {
     // User dashboard
     Route::get('/user/dashboard', [DashboardController::class, 'userDashboard'])->name('user.dashboard');
 });
+
+use App\Services\WhatsappHelper;
+
+Route::get('/test-whatsapp', function () {
+    $whatsapp = new \App\Services\WhatsappHelper();
+    $response = $whatsapp->sendMessage('+6282297233332', 'Tes kirim dari Laravel untuk Pelanggan', [
+        'countryCode' => '62',
+        'typing' => true,
+    ]);
+    return response()->json($response);
+});
+
+Route::get('/test-token', function () {
+    return response()->json(['token' => config('services.fonnte.api_key')]);
+});
+
+Route::get('/test-fonnte', function() {
+    return response()->json([
+        'api_key' => config('services.fonnte.api_key'),
+        'status' => 'Konfigurasi Fonnte',
+        'loaded' => !empty(config('services.fonnte.api_key'))
+    ]);
+});
+
+Route::get('/check-env', function() {
+    return response()->json([
+        'env_key' => env('FONNTE_API_KEY'),
+        'config_key' => config('services.fonnte.api_key')
+    ]);
+});

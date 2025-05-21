@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use Illuminate\Http\Request;
 use App\Models\Service;
 use App\Models\Customer;
+use App\Services\WhatsappHelper;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -13,45 +16,12 @@ class OrderController extends Controller
     {
         $query = Order::with('customer', 'service');
 
-        // Filter berdasarkan status
-        if ($request->has('status') && $request->status != '') {
-            $query->where('status', $request->status);
-        }
+        $this->applyFilters($query, $request);
+        $this->applySorting($query, $request);
 
-        // Filter berdasarkan nama customer
-        if ($request->has('customer') && $request->customer != '') {
-            $query->whereHas('customer', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->customer . '%');
-            });
-        }
-
-        // Filter berdasarkan tanggal pickup
-        if ($request->has('date_from') && $request->date_from != '') {
-            $query->whereDate('pickup_date', '>=', $request->date_from);
-        }
-        if ($request->has('date_to') && $request->date_to != '') {
-            $query->whereDate('pickup_date', '<=', $request->date_to);
-        }
-
-        // Filter berdasarkan jenis layanan
-        if ($request->has('service_id') && $request->service_id != '') {
-            $query->where('service_id', $request->service_id);
-        }
-
-        // Urutkan berdasarkan ID (A-Z atau Z-A)
-        if ($request->has('sort_id') && in_array($request->sort_id, ['asc', 'desc'])) {
-            $query->orderBy('id', $request->sort_id);
-        } else {
-            $query->latest(); // Default: urutkan dari ID terbaru
-        }
-
-        // Ambil data orders dan terapkan pagination
         $orders = $query->paginate(10)->appends($request->query());
-
-        // Ambil data layanan
         $services = Service::orderBy('name')->get();
 
-        // Kirim ke view
         return view('orders.index', compact('orders', 'services'));
     }
 
@@ -64,23 +34,14 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'customer_id' => 'required|exists:customers,id',
-            'service_id' => 'required|exists:services,id',
-            'weight' => 'required|numeric|min:0.1',
-            'total_price' => 'required|numeric',
-            'status' => 'required|in:pending,processing,completed,cancelled',
-            'pickup_date' => 'required|date',
-            'delivery_date' => 'required|date|after:pickup_date',
-            'notes' => 'nullable|string'
-        ]);
+        $validated = $this->validateOrderRequest($request);
+        $validated['total_price'] = $this->cleanPriceFormat($validated['total_price']);
 
-        // Bersihkan format total_price jika perlu
-        $validated['total_price'] = str_replace(['Rp ', '.'], '', $validated['total_price']);
+        DB::transaction(function () use ($validated) {
+            Order::create($validated);
+        });
 
-        Order::create($validated);
-
-        return redirect()->route('orders.index')->with('success', 'Order created successfully.');
+        return redirect()->route('orders.index')->with('success', 'Order berhasil dibuat');
     }
 
     public function show(Order $order)
@@ -97,18 +58,16 @@ class OrderController extends Controller
 
     public function update(Request $request, Order $order)
     {
-        $validated = $request->validate([
-            'customer_id' => 'required|exists:customers,id',
-            'service_id' => 'required|exists:services,id',
-            'weight' => 'required|numeric|min:0.1',
-            'total_price' => 'required|numeric',
-            'status' => 'required|in:pending,processing,completed,cancelled',
-            'pickup_date' => 'required|date',
-            'delivery_date' => 'required|date|after:pickup_date',
-            'notes' => 'nullable|string'
-        ]);
+        $validated = $this->validateOrderRequest($request);
+        $validated['total_price'] = $this->cleanPriceFormat($validated['total_price']);
+
+        $statusSebelumnya = $order->status;
 
         $order->update($validated);
+
+        if ($validated['status'] === 'completed' && $statusSebelumnya !== 'completed') {
+            $this->sendCompletionNotification($order);
+        }
 
         return redirect()->route('orders.show', $order->id)
             ->with('success', 'Pesanan berhasil diperbarui');
@@ -118,9 +77,10 @@ class OrderController extends Controller
     {
         try {
             $order->delete();
-            return redirect()->route('orders.index')->with('success', 'Order deleted successfully');
+            return redirect()->route('orders.index')->with('success', 'Order berhasil dihapus');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to delete order');
+            Log::error('Gagal menghapus order: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menghapus order');
         }
     }
 
@@ -133,16 +93,144 @@ class OrderController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        $order = Order::findOrFail($id);
+        $order = Order::with('customer', 'service')->findOrFail($id);
 
         $validated = $request->validate([
             'status' => 'required|in:pending,processing,completed,cancelled',
         ]);
 
-        $order->status = $validated['status'];
-        $order->save();
+        $statusSebelumnya = $order->status;
+
+        DB::transaction(function () use ($order, $validated, $statusSebelumnya) {
+            $order->update(['status' => $validated['status']]);
+
+            if ($validated['status'] === 'completed' && $statusSebelumnya !== 'completed') {
+                $this->sendCompletionNotification($order);
+            }
+        });
 
         return redirect()->route('orders.show', $order->id)
-            ->with('success', 'Status pesanan berhasil diperbarui.');
+            ->with('success', 'Status pesanan berhasil diperbarui');
+    }
+
+    protected function sendCompletionNotification(Order $order)
+    {
+        try {
+            $customer = $order->customer;
+            $phone = $this->formatPhoneNumber($customer->phone);
+
+            if (!$phone) {
+                throw new \Exception('Nomor WhatsApp tidak tersedia');
+            }
+
+            $message = $this->buildCompletionMessage($order);
+            $options = [
+                'countryCode' => '62',
+                'typing' => true,
+                'preview' => true,
+            ];
+
+            $whatsapp = new WhatsappHelper();
+            $response = $whatsapp->sendMessage($phone, $message, $options);
+
+            if (!$response['success']) {
+                throw new \Exception($response['message'] ?? 'Gagal mengirim notifikasi');
+            }
+
+            $order->update([
+                'whatsapp_sent_at' => now(),
+                'whatsapp_status' => 'success'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error mengirim notifikasi WhatsApp: ' . $e->getMessage(), [
+                'order_id' => $order->id,
+                'error' => $e->getTraceAsString()
+            ]);
+
+            $order->update([
+                'whatsapp_status' => 'failed',
+                'whatsapp_error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    protected function buildCompletionMessage(Order $order)
+    {
+        return "Halo {$order->customer->name},\n\n" .
+               "📌 Pesanan Anda untuk *{$order->service->name}* telah selesai:\n" .
+               "🆔 ID Pesanan: #{$order->id}\n" .
+               "⏰ Waktu Selesai: " . $order->updated_at->format('d/m/Y H:i') . "\n" .
+               "💵 Total Biaya: Rp " . number_format($order->total_price, 0, ',', '.') . "\n\n" .
+               "Terima kasih telah menggunakan layanan kami!\n\n" .
+               "📞 Hubungi kami jika ada pertanyaan.";
+    }
+
+    protected function formatPhoneNumber($phone)
+    {
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+
+        if (str_starts_with($phone, '0')) {
+            return '62' . substr($phone, 1);
+        }
+
+        if (str_starts_with($phone, '+62')) {
+            return substr($phone, 1);
+        }
+
+        return $phone;
+    }
+
+    protected function validateOrderRequest(Request $request)
+    {
+        return $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'service_id' => 'required|exists:services,id',
+            'weight' => 'required|numeric|min:0.1',
+            'total_price' => 'required|numeric',
+            'status' => 'required|in:pending,processing,completed,cancelled',
+            'pickup_date' => 'required|date',
+            'delivery_date' => 'required|date|after:pickup_date',
+            'notes' => 'nullable|string'
+        ]);
+    }
+
+    protected function cleanPriceFormat($price)
+    {
+        return str_replace(['Rp ', '.', ','], '', $price);
+    }
+
+    protected function applyFilters($query, Request $request)
+    {
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('customer')) {
+            $query->whereHas('customer', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->customer . '%');
+            });
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('pickup_date', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('pickup_date', '<=', $request->date_to);
+        }
+
+        if ($request->filled('service_id')) {
+            $query->where('service_id', $request->service_id);
+        }
+    }
+
+    protected function applySorting($query, Request $request)
+    {
+        if ($request->filled('sort_id') && in_array($request->sort_id, ['asc', 'desc'])) {
+            $query->orderBy('id', $request->sort_id);
+        } else {
+            $query->latest();
+        }
     }
 }
