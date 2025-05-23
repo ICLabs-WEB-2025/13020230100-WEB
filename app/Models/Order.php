@@ -21,6 +21,8 @@ class Order extends Model
         'payment_status',
         'payment_method',
         'transaction_id',
+        'pickup_service',
+        'delivery_service',
     ];
 
     protected $casts = [

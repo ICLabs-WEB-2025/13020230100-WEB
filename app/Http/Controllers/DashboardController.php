@@ -139,6 +139,12 @@ class DashboardController extends Controller
 
         $orderStatusData = $this->statsRepository->getOrderStatusStats();
 
+        // Pesanan yang perlu dikonfirmasi admin: SEMUA pesanan baru (pending/processing), baik online maupun cash
+        $ordersToConfirm = \App\Models\Order::with(['customer', 'service'])
+            ->whereIn('status', ['pending', 'processing'])
+            ->latest()
+            ->get();
+
         return view('dashboardAdmin', [
             'totalCustomers'    => $dashboardStats['totalCustomers'] ?? 0,
             'monthlyOrders'     => $dashboardStats['monthlyOrders'] ?? 0,
@@ -158,6 +164,7 @@ class DashboardController extends Controller
             'weeklyData'        => $weeklyData,
             'weeklyRevenueData' => $weeklyRevenue,
             'orderStatusData'   => $orderStatusData,
+            'ordersToConfirm'   => $ordersToConfirm,
         ]);
     }
 

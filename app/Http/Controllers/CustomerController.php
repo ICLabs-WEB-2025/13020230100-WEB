@@ -60,6 +60,11 @@ class CustomerController extends Controller
 
     public function destroy(Customer $customer)
     {
+        // Cek apakah customer masih punya order
+        if ($customer->orders()->count() > 0) {
+            return redirect()->route('customers.index')
+                ->with('error', 'Customer masih memiliki pesanan. Hapus semua pesanan customer ini terlebih dahulu.');
+        }
         $customer->delete();
 
         return redirect()->route('customers.index')

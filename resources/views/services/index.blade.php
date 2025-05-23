@@ -26,6 +26,7 @@
                                         <th width="10%">No</th>
                                         <th width="30%">Nama Layanan</th>
                                         <th width="30%">Harga per KG</th>
+                                        <th>Jumlah Pesanan</th>
                                         <th width="30%">Aksi</th>
                                     </tr>
                                 </thead>
@@ -36,17 +37,33 @@
                                             <td>{{ $service->name }}</td>
                                             <td>Rp {{ number_format($service->price_per_kg, 0, ',', '.') }}</td>
                                             <td>
+                                                <span class="badge {{ $service->orders->count() > 0 ? 'bg-warning' : 'bg-success' }}">
+                                                    {{ $service->orders->count() }} pesanan
+                                                </span>
+                                                @if($service->orders->count() > 0)
+                                                    <a href="{{ route('orders.index', ['service_id' => $service->id]) }}" class="btn btn-link btn-sm p-0 ms-1" title="Lihat pesanan layanan ini">
+                                                        <i class="fas fa-external-link-alt"></i>
+                                                    </a>
+                                                @endif
+                                            </td>
+                                            <td>
                                                 <div class="d-flex justify-content-center gap-2 flex-wrap">
                                                     <a href="{{ route('services.edit', $service->id) }}" class="btn btn-warning btn-sm mb-1">
                                                         <i class="fas fa-edit"></i> Edit
                                                     </a>
-                                                    <form action="{{ route('services.destroy', $service->id) }}" method="POST" style="display: inline;">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-danger btn-sm mb-1" onclick="return confirm('Yakin ingin menghapus layanan ini?')">
+                                                    @if($service->orders->count() > 0)
+                                                        <button type="button" class="btn btn-danger btn-sm mb-1" disabled title="Layanan masih digunakan pada {{ $service->orders->count() }} pesanan dan tidak dapat dihapus">
                                                             <i class="fas fa-trash"></i> Hapus
                                                         </button>
-                                                    </form>
+                                                    @else
+                                                        <form action="{{ route('services.destroy', $service->id) }}" method="POST" style="display: inline;">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-danger btn-sm mb-1" onclick="return confirm('Yakin ingin menghapus layanan {{ $service->name }}?')">
+                                                                <i class="fas fa-trash"></i> Hapus
+                                                            </button>
+                                                        </form>
+                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>

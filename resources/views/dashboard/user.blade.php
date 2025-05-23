@@ -31,6 +31,15 @@
             </div>
         </div>
     </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 text-white bg-info h-100 hover-zoom">
+            <div class="card-body">
+                <h5 class="card-title"><i class="fas fa-plus-circle me-2"></i>New Order</h5>
+                <p class="card-text">Place a new order online.</p>
+                <a href="{{ route('orders.create') }}" class="btn btn-light">Order Now</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <h2 class="mt-5 mb-3">📦 Recent Orders</h2>

@@ -26,10 +26,10 @@
                                             <label for="status" class="form-label">Status</label>
                                             <select name="status" id="status" class="form-select">
                                                 <option value="">Semua</option>
-                                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                                <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
-                                                <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
-                                                <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Menunggu</option>
+                                                <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Sedang Diproses</option>
+                                                <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Selesai</option>
+                                                <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
                                             </select>
                                         </div>
 
@@ -126,16 +126,22 @@
                                                 @elseif($order->status == 'cancelled') bg-danger
                                                 @else bg-secondary
                                                 @endif">
-                                                {{ ucfirst($order->status) }}
+                                                @switch($order->status)
+                                                    @case('completed') Selesai @break
+                                                    @case('processing') Sedang Diproses @break
+                                                    @case('cancelled') Dibatalkan @break
+                                                    @case('pending') Menunggu @break
+                                                    @default {{ ucfirst($order->status) }}
+                                                @endswitch
                                             </span>
                                         </td>
                                         <td>
                                             <div class="d-flex flex-wrap justify-content-center gap-1">
-                                                <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-info" title="View">
-                                                    <i class="fas fa-eye d-none d-sm-inline"></i> <span class="d-inline d-sm-none">View</span>
+                                                <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-info" title="Lihat">
+                                                    <i class="fas fa-eye d-none d-sm-inline"></i> <span class="d-inline d-sm-none">Lihat</span>
                                                 </a>
-                                                <a href="{{ route('orders.edit', $order->id) }}" class="btn btn-sm btn-warning" title="Edit">
-                                                    <i class="fas fa-edit d-none d-sm-inline"></i> <span class="d-inline d-sm-none">Edit</span>
+                                                <a href="{{ route('orders.edit', $order->id) }}" class="btn btn-sm btn-warning" title="Ubah">
+                                                    <i class="fas fa-edit d-none d-sm-inline"></i> <span class="d-inline d-sm-none">Ubah</span>
                                                 </a>
                                                 <form action="{{ route('orders.destroy', $order->id) }}" method="POST" class="d-inline">
                                                     @csrf

@@ -65,8 +65,12 @@ class ServiceController extends Controller
     public function destroy($id)
     {
         $service = Service::findOrFail($id);
+        // Cek apakah service masih punya order
+        if ($service->orders()->count() > 0) {
+            return redirect()->route('services.index')
+                ->with('error', 'Layanan masih memiliki pesanan. Hapus semua pesanan yang menggunakan layanan ini terlebih dahulu.');
+        }
         $service->delete();
-
         return redirect()->route('services.index')->with('success', 'Layanan berhasil dihapus!');
     }
 }

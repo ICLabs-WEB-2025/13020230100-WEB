@@ -45,9 +45,9 @@ class OrderStatisticsRepository
     public function getDailyStats($days = 30)
     {
         return Order::query()
-            ->selectRaw('DATE(created_at) as date, CAST(COUNT(*) AS UNSIGNED) as count, SUM(total_price) as revenue')
+            ->selectRaw('DATE(created_at) as date, CAST(COUNT(*) AS UNSIGNED) as count, SUM(total_price) as revenue, SUM(CASE WHEN status IN (\'pending\', \'processing\') THEN total_price ELSE 0 END) as unpaid')
             ->where('created_at', '>=', now()->subDays($days))
-            ->where('status', 'completed')
+            ->whereIn('status', ['completed', 'pending', 'processing'])
             ->groupBy('date')
             ->orderBy('date')
             ->get();
@@ -56,9 +56,9 @@ class OrderStatisticsRepository
     public function getWeeklyStats($weeks = 12)
     {
         return Order::query()
-            ->selectRaw('YEAR(created_at) as year, WEEK(created_at, 1) as week, COUNT(*) as count, SUM(total_price) as revenue')
+            ->selectRaw('YEAR(created_at) as year, WEEK(created_at, 1) as week, COUNT(*) as count, SUM(total_price) as revenue, SUM(CASE WHEN status IN (\'pending\', \'processing\') THEN total_price ELSE 0 END) as unpaid')
             ->where('created_at', '>=', now()->subWeeks($weeks))
-            ->where('status', 'completed')
+            ->whereIn('status', ['completed', 'pending', 'processing'])
             ->groupBy('year', 'week')
             ->orderBy('year')
             ->orderBy('week')
@@ -68,9 +68,9 @@ class OrderStatisticsRepository
     public function getMonthlyStats($months = 12)
     {
         return Order::query()
-            ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, COUNT(*) as count, SUM(total_price) as revenue')
+            ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, COUNT(*) as count, SUM(total_price) as revenue, SUM(CASE WHEN status IN (\'pending\', \'processing\') THEN total_price ELSE 0 END) as unpaid')
             ->where('created_at', '>=', now()->subMonths($months))
-            ->where('status', 'completed')
+            ->whereIn('status', ['completed', 'pending', 'processing'])
             ->groupBy('year', 'month')
             ->orderBy('year')
             ->orderBy('month')

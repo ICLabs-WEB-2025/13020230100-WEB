@@ -21,6 +21,7 @@
                                     <th>Nama</th>
                                     <th>Email</th>
                                     <th>Telepon</th>
+                                    <th>Jumlah Pesanan</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -31,16 +32,32 @@
                                     <td>{{ $customer->email }}</td>
                                     <td>{{ $customer->phone }}</td>
                                     <td>
+                                        <span class="badge {{ $customer->orders->count() > 0 ? 'bg-warning' : 'bg-success' }}">
+                                            {{ $customer->orders->count() }} pesanan
+                                        </span>
+                                        @if($customer->orders->count() > 0)
+                                            <a href="{{ route('orders.index', ['customer' => $customer->name]) }}" class="btn btn-link btn-sm p-0 ms-1" title="Lihat pesanan customer ini">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+                                        @endif
+                                    </td>
+                                    <td>
                                         <a href="{{ route('customers.edit', $customer->id) }}" class="btn btn-warning btn-sm">
                                             <i class="fas fa-edit"></i> Edit
                                         </a>
-                                        <form action="{{ route('customers.destroy', $customer->id) }}" method="POST" style="display: inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus?')">
+                                        @if($customer->orders->count() > 0)
+                                            <button type="button" class="btn btn-danger btn-sm" disabled title="Customer memiliki {{ $customer->orders->count() }} pesanan dan tidak dapat dihapus">
                                                 <i class="fas fa-trash"></i> Delete
                                             </button>
-                                        </form>
+                                        @else
+                                            <form action="{{ route('customers.destroy', $customer->id) }}" method="POST" style="display: inline;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Apakah Anda yakin ingin menghapus customer {{ $customer->name }}?')">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach

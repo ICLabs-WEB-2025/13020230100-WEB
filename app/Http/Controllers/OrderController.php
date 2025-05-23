@@ -5,15 +5,22 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Service;
 use App\Models\Customer;
+use App\Models\Payment;
 use App\Services\WhatsappHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; // ✅ Benar
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Routing\Controller; // Pastikan ini diimpor
 
-
-class OrderController extends Controller
+class OrderController extends Controller // Pastikan mewarisi Controller
 {
+    public function __construct()
+    {
+        // Terapkan middleware auth untuk metode tertentu
+        $this->middleware('auth')->except(['index', 'show']);
+    }
+
     public function index(Request $request)
     {
         $query = Order::with('customer', 'service');
@@ -31,19 +38,68 @@ class OrderController extends Controller
     {
         $customers = Customer::orderBy('name')->get();
         $services = Service::orderBy('name')->get();
+        
+        // Jika tidak ada pelanggan untuk admin, tampilkan pesan
+        if (Auth::check() && Auth::user()->role === 'admin' && $customers->isEmpty()) {
+            return redirect()->route('orders.index')->with('error', 'Tidak ada pelanggan tersedia. Tambahkan pelanggan terlebih dahulu.');
+        }
+
         return view('orders.create', compact('customers', 'services'));
     }
 
     public function store(Request $request)
     {
+        // Validasi input
         $validated = $this->validateOrderRequest($request);
-        $validated['total_price'] = $this->cleanPriceFormat($validated['total_price']);
 
-        DB::transaction(function () use ($validated) {
-            Order::create($validated);
+        // Untuk non-admin, pastikan customer_id adalah ID pelanggan yang sesuai
+        if (Auth::check() && Auth::user()->role !== 'admin') {
+            $customer = Customer::where('user_id', Auth::id())->first();
+            if (!$customer) {
+                Log::warning('Pengguna tidak memiliki entri pelanggan', ['user_id' => Auth::id()]);
+                return redirect()->route('user.profile')->with('error', 'Profil pelanggan belum diatur. Silakan lengkapi profil Anda.');
+            }
+            $validated['customer_id'] = $customer->id;
+        }
+
+        $validated['total_price'] = $this->cleanPriceFormat($validated['total_price']);
+        $validated['pickup_service'] = $request->input('pickup_service');
+        $validated['delivery_service'] = $request->input('delivery_service');
+        $validated['payment_method'] = $request->input('payment_method');
+
+        // Logic status pesanan sesuai workflow laundry
+        if ($validated['payment_method'] === 'cash') {
+            $validated['status'] = 'processing';
+        } elseif ($validated['payment_method'] === 'online') {
+            $validated['status'] = 'pending';
+        }
+
+        $order = null;
+        DB::transaction(function () use ($validated, &$order) {
+            $order = Order::create($validated);
+
+            if ($validated['payment_method'] === 'online') {
+                Payment::create([
+                    'order_id' => $order->id,
+                    'payment_method' => $validated['payment_method'],
+                    'amount' => $validated['total_price'],
+                    'status' => 'pending',
+                ]);
+                // Integrasi gateway pembayaran dapat ditambahkan di sini
+            }
         });
 
-        return redirect()->route('orders.index')->with('success', 'Order berhasil dibuat');
+        $message = 'Pesanan berhasil dibuat';
+        if (Auth::check() && Auth::user()->role === 'admin' && $validated['payment_method'] === 'online') {
+            $message .= ' (Konfirmasi pembayaran online diperlukan, status pesanan: processing)';
+        }
+
+        // Jika request dari modal (AJAX atau form dengan ?from_dashboard_modal=1), balas JSON dan sertakan view struk
+        if ($request->ajax() || $request->has('from_dashboard_modal')) {
+            $strukView = view('orders.struk', ['order' => $order])->render();
+            return response()->json(['success' => true, 'message' => $message, 'struk' => $strukView]);
+        }
+        return redirect()->route('orders.index')->with('success', $message);
     }
 
     public function show(Order $order)
@@ -55,14 +111,29 @@ class OrderController extends Controller
     {
         $customers = Customer::orderBy('name')->get();
         $services = Service::orderBy('name')->get();
+        
+        // Pastikan order milik customer yang valid
+        if (!Customer::where('id', $order->customer_id)->exists()) {
+            return redirect()->route('orders.index')->with('error', 'Pelanggan tidak valid untuk pesanan ini.');
+        }
+
         return view('orders.edit', compact('order', 'customers', 'services'));
     }
 
     public function update(Request $request, Order $order)
     {
         $validated = $this->validateOrderRequest($request);
-        $validated['total_price'] = $this->cleanPriceFormat($validated['total_price']);
 
+        // Untuk non-admin, pastikan customer_id tidak diubah
+        if (Auth::check() && Auth::user()->role !== 'admin') {
+            $customer = Customer::where('user_id', Auth::id())->first();
+            if (!$customer) {
+                return redirect()->route('user.profile')->with('error', 'Profil pelanggan belum diatur. Silakan lengkapi profil Anda.');
+            }
+            $validated['customer_id'] = $customer->id;
+        }
+
+        $validated['total_price'] = $this->cleanPriceFormat($validated['total_price']);
         $statusSebelumnya = $order->status;
 
         $order->update($validated);
@@ -79,10 +150,10 @@ class OrderController extends Controller
     {
         try {
             $order->delete();
-            return redirect()->route('orders.index')->with('success', 'Order berhasil dihapus');
+            return redirect()->route('orders.index')->with('success', 'Pesanan berhasil dihapus');
         } catch (\Exception $e) {
-            Log::error('Gagal menghapus order: ' . $e->getMessage());
-            return back()->with('error', 'Gagal menghapus order');
+            Log::error('Gagal menghapus pesanan: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menghapus pesanan');
         }
     }
 
@@ -111,8 +182,12 @@ class OrderController extends Controller
             }
         });
 
-        return redirect()->route('orders.show', $order->id)
-            ->with('success', 'Status pesanan berhasil diperbarui');
+        // Jika request dari modal konfirmasi (AJAX atau form biasa), tampilkan pesan sukses tanpa redirect ke halaman lain
+        if ($request->ajax() || $request->has('from_dashboard_modal')) {
+            return response()->json(['success' => true, 'message' => 'Status pesanan berhasil dikonfirmasi!']);
+        }
+
+        return back()->with('success', 'Status pesanan berhasil dikonfirmasi!');
     }
 
     protected function sendCompletionNotification(Order $order)
@@ -143,7 +218,6 @@ class OrderController extends Controller
                 'whatsapp_sent_at' => now(),
                 'whatsapp_status' => 'success'
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error mengirim notifikasi WhatsApp: ' . $e->getMessage(), [
                 'order_id' => $order->id,
@@ -185,16 +259,30 @@ class OrderController extends Controller
 
     protected function validateOrderRequest(Request $request)
     {
-        return $request->validate([
-            'customer_id' => 'required|exists:customers,id',
+        // Untuk validasi, status tidak perlu diinput user, set default saja jika tidak ada
+        $rules = [
+            'customer_id' => [
+                'required',
+                'exists:customers,id',
+            ],
             'service_id' => 'required|exists:services,id',
             'weight' => 'required|numeric|min:0.1',
             'total_price' => 'required|numeric',
-            'status' => 'required|in:pending,processing,completed,cancelled',
             'pickup_date' => 'required|date',
             'delivery_date' => 'required|date|after:pickup_date',
-            'notes' => 'nullable|string'
-        ]);
+            'pickup_service' => 'required|in:yes,no',
+            'delivery_service' => 'required|in:yes,no',
+            'payment_method' => 'required|in:online,cash',
+            'notes' => 'nullable|string|max:500',
+            'status' => 'required|in:pending,processing,completed,cancelled',
+        ];
+
+        // Untuk non-admin, customer_id tidak perlu divalidasi dari input
+        if (Auth::check() && Auth::user()->role !== 'admin') {
+            unset($rules['customer_id']);
+        }
+
+        return $request->validate($rules);
     }
 
     protected function cleanPriceFormat($price)
@@ -235,6 +323,7 @@ class OrderController extends Controller
             $query->latest();
         }
     }
+
     public function userOrders(Request $request)
     {
         // Ambil customer berdasarkan user_id pengguna yang login
@@ -242,12 +331,12 @@ class OrderController extends Controller
 
         // Jika customer tidak ditemukan, arahkan ke profil dengan pesan error
         if (!$customer) {
-            \Log::warning('User tidak memiliki entri Customer', ['user_id' => Auth::id()]);
+            Log::warning('Pengguna tidak memiliki entri pelanggan', ['user_id' => Auth::id()]);
             return redirect()->route('user.profile')->with('error', 'Profil pelanggan belum diatur. Silakan lengkapi profil Anda.');
         }
 
         // Log untuk debugging
-        Log::info('Mengambil pesanan untuk user', [
+        Log::info('Mengambil pesanan untuk pengguna', [
             'user_id' => Auth::id(),
             'customer_id' => $customer->id,
         ]);
