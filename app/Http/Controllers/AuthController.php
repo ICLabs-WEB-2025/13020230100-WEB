@@ -75,8 +75,9 @@ class AuthController extends Controller
             'role' => 'user', // Set default role to 'user'
         ]);
 
-        // Tambahkan pengguna sebagai customer
-        Customer::create([
+        // Tambahkan pengguna sebagai customer dengan user_id langsung diisi
+        $customer = Customer::create([
+            'user_id' => $user->id, // Kaitkan langsung dengan user_id
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $request->phone,

@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,26 +13,33 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Hapus semua data di tabel users sebelum menambahkan data baru
-        User::truncate();
+        // Buat 10 user dummy menggunakan factory
+        User::factory(10)->create();
 
-        // User::factory(10)->create();
+        // Buat user 'Test User' jika belum ada
+        User::updateOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'Test User',
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'), // Ganti jika perlu
+            ]
+        );
+
+        // Buat atau update akun admin
+        User::updateOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('password123'), // Ganti dengan password yang aman
+                'role' => 'admin',
+            ]
+        );
+
+        // Jalankan seeder tambahan
         $this->call([
-        // ... seeders lain
-        DummyOrdersSeeder::class,
-    ]);
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-
-        // Tambahkan akun admin secara langsung
-        User::create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => bcrypt('admin123'), // Ganti dengan password yang aman
-            'role' => 'admin',
+            DummyOrdersSeeder::class,
+            // Tambahkan seeder lainnya di sini jika perlu
         ]);
     }
 }

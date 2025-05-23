@@ -65,4 +65,8 @@ class CustomerController extends Controller
         return redirect()->route('customers.index')
                          ->with('success', 'Customer berhasil dihapus');
     }
+    public function profile()
+    {
+        return view('customer.profile');
+    }
 }

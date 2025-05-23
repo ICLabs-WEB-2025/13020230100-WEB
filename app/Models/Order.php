@@ -17,7 +17,10 @@ class Order extends Model
         'status',
         'pickup_date',
         'delivery_date',
-        'notes'
+        'notes',
+        'payment_status',
+        'payment_method',
+        'transaction_id',
     ];
 
     protected $casts = [

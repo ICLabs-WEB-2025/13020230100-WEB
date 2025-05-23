@@ -88,3 +88,9 @@ Route::get('/check-env', function() {
         'config_key' => config('services.fonnte.api_key')
     ]);
 });
+Route::get('/', function () {
+    return view('welcome');
+})->name('welcome');
+
+Route::get('/user/orders', [OrderController::class, 'userOrders'])->name('user.orders');
+Route::get('/customer/profile', [App\Http\Controllers\CustomerController::class, 'profile'])->name('customer.profile');

@@ -9,6 +9,8 @@ use App\Services\WhatsappHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth; // ✅ Benar
+
 
 class OrderController extends Controller
 {
@@ -232,5 +234,37 @@ class OrderController extends Controller
         } else {
             $query->latest();
         }
+    }
+    public function userOrders(Request $request)
+    {
+        // Ambil customer berdasarkan user_id pengguna yang login
+        $customer = Customer::where('user_id', Auth::id())->first();
+
+        // Jika customer tidak ditemukan, arahkan ke profil dengan pesan error
+        if (!$customer) {
+            \Log::warning('User tidak memiliki entri Customer', ['user_id' => Auth::id()]);
+            return redirect()->route('user.profile')->with('error', 'Profil pelanggan belum diatur. Silakan lengkapi profil Anda.');
+        }
+
+        // Log untuk debugging
+        Log::info('Mengambil pesanan untuk user', [
+            'user_id' => Auth::id(),
+            'customer_id' => $customer->id,
+        ]);
+
+        // Ambil pesanan hanya untuk customer_id yang sesuai
+        $query = Order::with('service')->where('customer_id', $customer->id);
+
+        // Terapkan filter status jika ada
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $orders = $query->latest()->paginate(10)->appends($request->query());
+
+        // Log jumlah pesanan yang ditemukan
+        Log::info('Jumlah pesanan ditemukan', ['count' => $orders->count()]);
+
+        return view('orders.user-orders', compact('orders'));
     }
 }

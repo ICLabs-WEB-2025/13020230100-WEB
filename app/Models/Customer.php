@@ -14,7 +14,8 @@ class Customer extends Model
         'name',
         'email',
         'phone',
-        'address'
+        'address',
+        'user_id' // Pastikan user_id dapat diisi
     ];
 
     protected $casts = [
@@ -137,4 +138,5 @@ class Customer extends Model
         $standardized = $this->standardizePhoneNumber($phone);
         return $query->where('phone', $standardized);
     }
+    
 }
