@@ -48,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/user/profile', [UserController::class, 'profile'])->name('user.profile');
     Route::get('/user/orders', [OrderController::class, 'userOrders'])->name('user.orders');
     Route::get('/user/settings', [UserController::class, 'settings'])->name('user.settings');
+    // Route::get('/profile', [ProfileController::class, 'index'])->name('user.profile');
 });
 
 // Route untuk dashboard berdasarkan role
@@ -94,3 +95,4 @@ Route::get('/', function () {
 
 Route::get('/user/orders', [OrderController::class, 'userOrders'])->name('user.orders');
 Route::get('/customer/profile', [App\Http\Controllers\CustomerController::class, 'profile'])->name('customer.profile');
+Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');

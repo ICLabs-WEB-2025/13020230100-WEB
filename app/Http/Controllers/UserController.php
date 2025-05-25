@@ -10,15 +10,13 @@ class UserController extends Controller
     // Menampilkan halaman profil user
     public function profile()
     {
-        $user = Auth::user();
-        return view('user.profile', compact('user'));
+        return view('profile.coming-soon');
     }
 
     // Menampilkan halaman pengaturan user
     public function settings()
     {
-        $user = Auth::user();
-        return view('user.settings', compact('user'));
+        return view('settings.coming-soon');
     }
 
     // Memperbarui pengaturan user
